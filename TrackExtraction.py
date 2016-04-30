@@ -14,8 +14,9 @@ def TrackExtraction(filename,dataDir):
         #fgmask = backgroundSubMOG.apply(frame)
         fgmask2 = backgroundSubKNN.apply(frame)
         kernel = numpy.ones((5, 5))
-        # Dilation
+        #------------------------- Dilation-----------------------------#
         dilation = cv2.dilate(fgmask2,kernel,iterations=1)
+        #---------------------------------------------------------------#
         """
         #opening
         opening = cv2.morphologyEx(fgmask2,cv2.MORPH_OPEN,kernel)
@@ -24,6 +25,10 @@ def TrackExtraction(filename,dataDir):
         erosion = cv2.erode(dilation,kernel,iterations=1)
         """
 
+        #-------------------------Blob Analysis-------------------------#
+        detector = cv2.SimpleBlobDetector_create()
+        keypoints = detector.detect(dilation)
+        #---------------------------------------------------------------#
         cv2.imshow('backgroundSubKNN',dilation)
         # waitKey is to control the speed of video, ord is to enable quit() using character
         if cv2.waitKey(100) & 0xFF == ord('q'):
