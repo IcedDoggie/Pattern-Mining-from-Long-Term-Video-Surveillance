@@ -12,26 +12,21 @@ def TrackExtraction(filename,dataDir):
     while (videoReader.isOpened()):
         ret, frame = videoReader.read()
         #fgmask = backgroundSubMOG.apply(frame)
-        fgmask2 = backgroundSubKNN.apply(frame)
-        kernel = numpy.ones((5, 5))
-        #------------------------- Dilation-----------------------------#
-        dilation = cv2.dilate(fgmask2,kernel,iterations=1)
+        fgmask2 = backgroundSubKNN.apply(frame)     #mask
+        #kernel = numpy.ones((5, 5))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2,2))
+        #------------------------- Remove Holes-------------------------#
+        fgmask2 = cv2.morphologyEx(fgmask2,cv2.MORPH_OPEN,kernel)
+        fgmask2 = cv2.morphologyEx(fgmask2,cv2.MORPH_CLOSE,kernel)
         #---------------------------------------------------------------#
-        """
-        #opening
-        opening = cv2.morphologyEx(fgmask2,cv2.MORPH_OPEN,kernel)
-
-        # Erosion
-        erosion = cv2.erode(dilation,kernel,iterations=1)
-        """
 
         #-------------------------Blob Analysis-------------------------#
         detector = cv2.SimpleBlobDetector_create()
-        keypoints = detector.detect(dilation)
+        keypoints = detector.detect(fgmask2)
         #---------------------------------------------------------------#
-        cv2.imshow('backgroundSubKNN',dilation)
+        cv2.imshow('backgroundSubKNN',fgmask2)
         # waitKey is to control the speed of video, ord is to enable quit() using character
-        if cv2.waitKey(100) & 0xFF == ord('q'):
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
 
