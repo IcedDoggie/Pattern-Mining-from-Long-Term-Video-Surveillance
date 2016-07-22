@@ -32,26 +32,31 @@ def TrackExtraction(filename,dataDir):
     #                                  Sub-Functions                               #
     #******************************************************************************#
     def detectObjects(frame):
-
+        coordinates = []
+        diameter = 0
         # Detect Foreground #
-        #fgmask = backgroundSubMOG.apply(frame)
-        fgmask2 = backgroundSubKNN.apply(frame)
+
+        fgmask2 = backgroundSubMOG.apply(frame)
+        #fgmask2 = backgroundSubKNN.apply(frame)
 
         # Morphological Operations #
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
         fgmask2 = cv2.morphologyEx(fgmask2, cv2.MORPH_OPEN, kernel)
-        fgmask2 = cv2.morphologyEx(fgmask2, cv2.MORPH_CLOSE, kernel)
+        fgmask2 = cv2.morphologyEx(fgmask2, cv2.MORPH_CLOSE, (15, 15))
 
         # Blob Analysis #
         detector = cv2.SimpleBlobDetector_create()
         keypoints = detector.detect(fgmask2)
-
+        print(len(keypoints))
         if keypoints != []:
-            keypoints = keypoints[0].pt
+            coordinates = keypoints[0].pt
+            diameter = keypoints[0].size
+            objectID = keypoints[0].class_id
+
 
 
         # Return Values #
-        return fgmask2,keypoints;
+        return fgmask2,coordinates,diameter
 
     def predictNewLocationsOfTracks():
         for i in range(len(tracks)):
@@ -77,23 +82,43 @@ def TrackExtraction(filename,dataDir):
     #
     # def trimTrackingResults():
 
+    def drawBoundingBox(frame,coordinates, diameter):
+        #test only
+        
+        #test ends
+        radius = int(diameter/2)
+        coordinates = list(coordinates)
+        coordinates[0] = int(coordinates[0])
+        coordinates[1] = int(coordinates[1])
+        coordinates = tuple(coordinates)
+
+        return coordinates, radius
+
+
+
 
     while (videoReader.isOpened()):
         ret, frame = videoReader.read()        # equivalent to obj.reader.step()
 
         frameNo = frameNo + 1
 
-        fgmask2,keypoints = detectObjects(frame)
-        print('Frame #', frameNo, ' ', keypoints)
+        fgmask2,coordinates,diameter = detectObjects(frame)
+
+        if coordinates != []:
+            coordinates, diameter = drawBoundingBox(fgmask2,coordinates,diameter)
+            abc = cv2.circle(fgmask2, coordinates, diameter, (255, 0, 0))
+        print('Frame #', frameNo, ' ', coordinates)
 
         #if not tracks:
         predictNewLocationsOfTracks()
 
         detectionToTrackAssignment()
 
-        cv2.imshow('backgroundSubKNN', fgmask2)
+        cv2.imshow('backgroundSub', fgmask2)
+
+
         # waitKey is to control the speed of video, ord is to enable quit() using character
-        if cv2.waitKey(100) & 0xFF == ord('q'):
+        if cv2.waitKey(5) & 0xFF == ord('q'):
             break
 
 
