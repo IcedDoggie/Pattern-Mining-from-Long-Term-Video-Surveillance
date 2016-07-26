@@ -2,18 +2,18 @@ import cv2
 import numpy as np
 from munkres import Munkres as mks
 from matplotlib import pyplot as plt
+import pandas as pd
 
 
 def TrackExtraction(filename,dataDir):
     video = dataDir + "\\" + filename
     videoReader = cv2.VideoCapture(video)
-    tracks = np.array([], dtype=[('id','i8'),('frameNo','i8'),('bbox','f4'),('kalmanFilter','f4'),('age','i8'),
-                                 ('totalVisibleCount','i8'),('consecutiveInvisibleCount','i8')])
+
+    tracks = pd.DataFrame(columns=('objectID', 'frameNo', 'coordinates'))
 
     # Some parameters by Mehdi #
-    nextId = 1
-    trackInfo = []
-    count = 1
+    objectId = 1
+    countObject = 1
     frameNo = 0
 
     # Kalman Filter #
@@ -31,13 +31,14 @@ def TrackExtraction(filename,dataDir):
     #******************************************************************************#
     #                                  Sub-Functions                               #
     #******************************************************************************#
-    def detectObjects(frame):
+    def detectObjects(frame,objectId):
         coordinates = []
+        tp = []
         diameter = 0
         # Detect Foreground #
 
-        fgmask2 = backgroundSubMOG.apply(frame)
-        #fgmask2 = backgroundSubKNN.apply(frame)
+        # fgmask2 = backgroundSubMOG.apply(frame)
+        fgmask2 = backgroundSubKNN.apply(frame)
 
         # Morphological Operations #
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
@@ -50,51 +51,50 @@ def TrackExtraction(filename,dataDir):
         print(len(keypoints))
         if keypoints != []:
             coordinates = keypoints[0].pt
+            #Conversion from float to int on coordinates
+            coordinates = list(coordinates)
+            coordinates[0] = int(coordinates[0])
+            coordinates[1] = int(coordinates[1])
+            coordinates = tuple(coordinates)
+
             diameter = keypoints[0].size
-            objectID = keypoints[0].class_id
-
-
 
         # Return Values #
-        return fgmask2,coordinates,diameter
+        return fgmask2,coordinates,diameter,tp
 
-    def predictNewLocationsOfTracks():
+    def predictNewLocationsOfTracks(coordinates):
         for i in range(len(tracks)):
+            coordinates = tracks['coordinates']  # accessing bbox in tracks array
+            tempCoordinates = list(coordinates)
+            tempCoordinatesX = float(tempCoordinates[i][0])
+            tempCoordinatesY = float(tempCoordinates[i][1])
+            tempCoordinates = np.array((2, 1), np.float32)
+            tempCoordinates[0] = tempCoordinatesX
+            tempCoordinates[1] = tempCoordinatesY
 
-            bbox = tracks['bbox'[i]]  #accessing bbox in tracks array
+            kalman.correct(tempCoordinates)
+            predictedCentroid = kalman.predict()
 
-            predictedCentroid = kalman.predict(tracks[i])
-            predictedCentroid = predictedCentroid - bbox[:1, 3:4] / 2
+            return predictedCentroid
 
-            tracks[i].bbox = [ predictedCentroid, bbox[:1, 3:4] ]
-            tracks[i].frameNo = frameNo
 
-    def detectionToTrackAssignment():
-        nTracks = len(tracks)
-
-    # def updateAssignedTracks():
+    # def detectionToTrackAssignment():
+    #     nTracks = len(tracks)
     #
-    # def updateUnassignedTracks():
-    #
-    # def deleteLostTracks():
-    #
-    # def createNewTracks():
-    #
-    # def trimTrackingResults():
+    # # def updateAssignedTracks():
+    # #
+    # # def updateUnassignedTracks():
+    # #
+    # # def deleteLostTracks():
+    # #
+    # # def createNewTracks():
+    # #
+    # # def trimTrackingResults():
 
     def drawBoundingBox(frame,coordinates, diameter):
-        #test only
-        
-        #test ends
-        radius = int(diameter/2)
-        coordinates = list(coordinates)
-        coordinates[0] = int(coordinates[0])
-        coordinates[1] = int(coordinates[1])
-        coordinates = tuple(coordinates)
+        radius = int(diameter/2) *10
 
         return coordinates, radius
-
-
 
 
     while (videoReader.isOpened()):
@@ -102,19 +102,26 @@ def TrackExtraction(filename,dataDir):
 
         frameNo = frameNo + 1
 
-        fgmask2,coordinates,diameter = detectObjects(frame)
+        fgmask2,coordinates,diameter,tp = detectObjects(frame,objectId)
 
         if coordinates != []:
             coordinates, diameter = drawBoundingBox(fgmask2,coordinates,diameter)
-            abc = cv2.circle(fgmask2, coordinates, diameter, (255, 0, 0))
-        print('Frame #', frameNo, ' ', coordinates)
+            tracks.loc[countObject] = (objectId, frameNo, (coordinates[0], coordinates[1]))
+            countObject = countObject + 1
+            predictedCentroids = predictNewLocationsOfTracks(coordinates)
+            #tracks.loc[countObject] = (objectId, frameNo, )
+            cv2.circle( fgmask2, coordinates, diameter, (255, 0, 0) )
+            cv2.circle( fgmask2, predictedCentroids, diameter, (0,255,0) )
+        print('Frame #', frameNo, ' ', coordinates,' ','TP :',tp)
+        cv2.imshow('backgroundSub', fgmask2)
 
         #if not tracks:
-        predictNewLocationsOfTracks()
+        # predictNewLocationsOfTracks()
 
-        detectionToTrackAssignment()
+        # detectionToTrackAssignment()
 
-        cv2.imshow('backgroundSub', fgmask2)
+
+
 
 
         # waitKey is to control the speed of video, ord is to enable quit() using character
