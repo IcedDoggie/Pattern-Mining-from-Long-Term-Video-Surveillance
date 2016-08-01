@@ -41,7 +41,7 @@ def TrackExtraction(filename,dataDir):
         fgmask2 = backgroundSubKNN.apply(frame)
 
         # Morphological Operations #
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
         fgmask2 = cv2.morphologyEx(fgmask2, cv2.MORPH_OPEN, kernel)
         fgmask2 = cv2.morphologyEx(fgmask2, cv2.MORPH_CLOSE, (15, 15))
 
@@ -63,24 +63,33 @@ def TrackExtraction(filename,dataDir):
         return fgmask2,coordinates,diameter,tp
 
     def predictNewLocationsOfTracks(coordinates):
+        predictedCentroids = np.zeros((2, 1), np.float32)
         for i in range(len(tracks)):
-            coordinates = tracks['coordinates']  # accessing bbox in tracks array
+            if coordinates == []:
+                coordinates = tracks['coordinates']  # accessing bbox in tracks array
+            print(coordinates)
             tempCoordinates = list(coordinates)
-            tempCoordinatesX = float(tempCoordinates[i][0])
-            tempCoordinatesY = float(tempCoordinates[i][1])
-            tempCoordinates = np.array((2, 1), np.float32)
+            tempCoordinatesX = float(tempCoordinates[0])
+            tempCoordinatesY = float(tempCoordinates[1])
+            tempCoordinates = np.array((2, 1), np.float32) #put float here because kalman.correct only accepts float32
             tempCoordinates[0] = tempCoordinatesX
             tempCoordinates[1] = tempCoordinatesY
 
             kalman.correct(tempCoordinates)
-            predictedCentroid = kalman.predict()
+            predictedCentroids = kalman.predict()
+            predictedCentroids = list(predictedCentroids)
 
-            return predictedCentroid
+            predictedCentroids[2] = int( predictedCentroids[2] )  # width/height
+            predictedCentroids[3] = int( predictedCentroids[3] )  # width/height
+            predictedCentroids[0] = int( predictedCentroids[0] ) # x
+            predictedCentroids[1] = int( predictedCentroids[1] ) # y
+
+            return predictedCentroids
 
 
-    # def detectionToTrackAssignment():
-    #     nTracks = len(tracks)
-    #
+    def detectionToTrackAssignment():
+        nTracks = len(tracks)
+
     # # def updateAssignedTracks():
     # #
     # # def updateUnassignedTracks():
@@ -99,35 +108,46 @@ def TrackExtraction(filename,dataDir):
 
     while (videoReader.isOpened()):
         ret, frame = videoReader.read()        # equivalent to obj.reader.step()
-
+        testbox = []
         frameNo = frameNo + 1
 
         fgmask2,coordinates,diameter,tp = detectObjects(frame,objectId)
 
-        if coordinates != []:
-            coordinates, diameter = drawBoundingBox(fgmask2,coordinates,diameter)
-            tracks.loc[countObject] = (objectId, frameNo, (coordinates[0], coordinates[1]))
-            countObject = countObject + 1
-            predictedCentroids = predictNewLocationsOfTracks(coordinates)
+
+        if coordinates == []:
+            coordinates = tuple([0,0])
+
+
+        coordinates, diameter = drawBoundingBox(fgmask2,coordinates,diameter)
+        tracks.loc[countObject] = (objectId, frameNo, (coordinates[0], coordinates[1]))
+        countObject = countObject + 1
+        predictedCentroids = predictNewLocationsOfTracks(coordinates)
+        # Operations below are all for kalman output
+        box1 = (predictedCentroids[0], predictedCentroids[2])
+        box2 = (predictedCentroids[1], predictedCentroids[3])
+        box1 = tuple(predictedCentroids[0:2])
+        box2 = tuple(predictedCentroids[2:4])
+        testbox1 = box1[0] - box2[0]
+        testbox2 = box1[1] - box2[1]
+        testbox = (testbox1, testbox2)
+
+
+
             #tracks.loc[countObject] = (objectId, frameNo, )
-            cv2.circle( fgmask2, coordinates, diameter, (255, 0, 0) )
-            cv2.circle( fgmask2, predictedCentroids, diameter, (0,255,0) )
-        print('Frame #', frameNo, ' ', coordinates,' ','TP :',tp)
-        cv2.imshow('backgroundSub', fgmask2)
+        cv2.circle( frame, coordinates, diameter, (255, 0, 0) )
+        prev = coordinates
+        #cv2.circle( fgmask2, predictedCentroids, diameter, (0,255,0) )
+        cv2.circle(frame, testbox, diameter, (0, 255, 0))   #not accurate, need to inspect what kind of data it is
+            #cv2.circle(fgmask2, box2, diameter, (255, 0, 0))
+        print('Frame #', frameNo, ' ', coordinates,' ','Kalman Prediction :',testbox)
 
-        #if not tracks:
-        # predictNewLocationsOfTracks()
-
-        # detectionToTrackAssignment()
-
-
-
-
+        #Create display window
+        cv2.namedWindow('TrackExtraction', cv2.WINDOW_NORMAL)
+        cv2.imshow('TrackExtraction', frame)
 
         # waitKey is to control the speed of video, ord is to enable quit() using character
         if cv2.waitKey(5) & 0xFF == ord('q'):
             break
-
 
 
 TrackExtraction('czech.avi','E:\Documents\MMU Studies\Python Scripts')
