@@ -11,11 +11,13 @@ def TrackExtraction(filename,dataDir):
 
     tracks = pd.DataFrame(columns=('objectID', 'frameNo', 'coordinates'))
 
+
     # Some parameters #
     objectId = 1
     countObject = 1
     frameNo = 0
     prev = (0,0)       # store previous coordinates
+
 
     # Kalman Filter #
     kalman = cv2.KalmanFilter(4, 2)
@@ -24,7 +26,9 @@ def TrackExtraction(filename,dataDir):
     kalman.processNoiseCov = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32)
 
     # initiation #
+
     backgroundSubMOG2 = cv2.createBackgroundSubtractorMOG2(0,0,False)
+
     backgroundSubKNN = cv2.createBackgroundSubtractorKNN()
 
 
@@ -38,8 +42,10 @@ def TrackExtraction(filename,dataDir):
         diameter = 0
         # Detect Foreground #
 
+
         fgmask2 = backgroundSubMOG2.apply(frame)
         #fgmask2 = backgroundSubKNN.apply(frame)
+
 
         # Morphological Operations #
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
@@ -70,6 +76,7 @@ def TrackExtraction(filename,dataDir):
                 coordinates = tracks['coordinates']  # accessing bbox in tracks array
             print(coordinates)
 
+
             #Conversion from float64 to float32
             tempCoordinates = list(coordinates)
             tempCoordinatesX = float(tempCoordinates[0])
@@ -79,9 +86,11 @@ def TrackExtraction(filename,dataDir):
             tempCoordinates[1] = tempCoordinatesY
 
             #Kalman's showtime
+
             kalman.correct(tempCoordinates)
             predictedCentroids = kalman.predict()
             predictedCentroids = list(predictedCentroids)
+
 
             #Conversion from float to int
             predictedCentroids[2] = int( predictedCentroids[2] )  # width/height
@@ -90,14 +99,17 @@ def TrackExtraction(filename,dataDir):
             predictedCentroids[1] = int( predictedCentroids[1] )  # y
 
             #tracks.loc[i] = ( predictedCentroids[0], predictedCentroids[1] )
+
             return predictedCentroids
 
 
     def detectionToTrackAssignment():
         nTracks = len(tracks)
 
+
     def opticFlow():
         print("Nothing is here")
+
 
 
     while (videoReader.isOpened()):
@@ -114,9 +126,11 @@ def TrackExtraction(filename,dataDir):
 
 
 
+
         tracks.loc[countObject] = ( objectId, frameNo, ( coordinates[0], coordinates[1] ) )
         countObject = countObject + 1
         predictedCentroids = predictNewLocationsOfTracks(prev)
+
 
         # Operations below are all for kalman output
         box1 = (predictedCentroids[0], predictedCentroids[2])
@@ -126,6 +140,7 @@ def TrackExtraction(filename,dataDir):
         testbox1 = box1[0] - box2[0]
         testbox2 = box1[1] - box2[1]
         testbox = (testbox1, testbox2)
+
         diameter = 50  # temp
         #testbox = (10,10)
         cv2.circle( frame, testbox, diameter, (0, 255, 0) )
@@ -144,6 +159,7 @@ def TrackExtraction(filename,dataDir):
 
         # waitKey is to control the speed of video, ord is to enable quit() using character
         if cv2.waitKey(15) & 0xFF == ord('q'):
+
             break
 
 
