@@ -4,6 +4,8 @@ Created on Sat Jan 21 20:37:52 2017
 
 @author: Ice
 """
+import pandas as pd
+import numpy as np
 
 # Construct lines for visualization in plot
 def LinesConstruct(dataFrameSelected):

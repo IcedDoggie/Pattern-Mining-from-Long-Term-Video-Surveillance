@@ -5,6 +5,11 @@ Created on Sat Jan 21 20:34:21 2017
 @author: Ice
 """
 
+from trajectory_pivoting_based_on_id import trajectory_pivoting_based_on_id
+from chamfer_distance import chamfer_distance
+import pandas as pd
+import math
+
 def calculateSimilarity(representative_trajectory, new_trajectory, parameter_nj):
     
     # splitting tracks based on id
@@ -22,5 +27,5 @@ def calculateSimilarity(representative_trajectory, new_trajectory, parameter_nj)
         probability_array += [math.exp( (-parameter_nj[tracks_counter]) * chamfer_distance(new_trajectory,representative_trajectory[ pivot_list[tracks_counter]:pivot_list[tracks_counter+1] ]))]
         tracks_counter += 1
 #     print(parameter_nj)
-    print(probability_array)
+#    print(probability_array)
     return max(probability_array)

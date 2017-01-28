@@ -4,6 +4,8 @@ Created on Sat Jan 21 20:36:29 2017
 
 @author: Ice
 """
+import pandas as pd
+import numpy as np
 
 # Get the output from TraClus, revamp and prepare data to visualize
 # to achieve this, i need to read from text file and reconstruct it back to a dataframe.
@@ -90,4 +92,4 @@ def ReadTraclusExport(filename):
     cols = cols[-1:] + cols[:-1]
     dataframeInt = dataframeInt[cols]
 
-    return dataframeInt
+    return dataframeInt, end, lines_ori

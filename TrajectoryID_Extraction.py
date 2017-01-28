@@ -4,10 +4,12 @@ Created on Sat Jan 21 20:36:52 2017
 
 @author: Ice
 """
+import numpy as np
+import pandas as pd
 
 #Decide the color for each cluster
 ##########stripping the trajectory id#################
-def TrajectoryID_Extraction(dataframeInt):
+def TrajectoryID_Extraction(dataframeInt, allFrames, end, lines_ori):
     startTraj_ID = end + 1
     endTraj_ID = len(lines_ori)
     stepTraj_ID = 2
@@ -15,8 +17,8 @@ def TrajectoryID_Extraction(dataframeInt):
     counter_cluster_ID = 0
     array_for_cluster_ID = []
     count_for_cluster_ID = []
+    
     ## Form ***clusterID***
-
     while counter_cluster_ID < len(traj_ID):
         count_cluster_ID = 0
         number_of_string = traj_ID[counter_cluster_ID].count(' ')
@@ -45,5 +47,5 @@ def TrajectoryID_Extraction(dataframeInt):
     #check the matched value through joining
 #     print(traj_ID)
     tempDF = pd.DataFrame()
-    tempDF = pd.merge(concatDay, traj_ID, on='TrackID')
+    tempDF = pd.merge(allFrames, traj_ID, on='TrackID')
     return tempDF

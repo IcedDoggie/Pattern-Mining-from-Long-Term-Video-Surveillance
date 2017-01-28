@@ -4,11 +4,15 @@ Created on Sat Jan 21 20:34:40 2017
 
 @author: Ice
 """
-
+from trajectory_pivoting_based_on_id import trajectory_pivoting_based_on_id
+from chamfer_distance import chamfer_distance
+import pandas as pd
+######## parameter nj and threshold is trained here
 def nj_training_parameter(training_track, representative_track):
     
     # calculate each of the training track chamfer distance
     parameter_nj = []
+    threshold = []
     training_track, pivot_list = trajectory_pivoting_based_on_id(training_track)
     
     representative_track, pivot_list2 = trajectory_pivoting_based_on_id(representative_track)

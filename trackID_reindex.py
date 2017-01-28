@@ -3,7 +3,10 @@
 Created on Sat Jan 21 20:42:13 2017
 
 @author: Ice
+
 """
+import pandas as pd
+import numpy as np
 
 def trackID_reindex(dataframe_to_be_reindexed, currentIndex):
     counter = 1

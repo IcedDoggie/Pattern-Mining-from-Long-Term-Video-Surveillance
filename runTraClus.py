@@ -28,26 +28,35 @@ root = 'E:\Documents\MMU Studies\Python Scripts'
 # 		cycle_days += 1
 
 # 	cycle_counter += 1
-
+#30_days_1_loop_3
 cycle_days = 0
 while cycle_days < 5:
-	# filename = str(cycle_days) + "_cluster"
-	filename = "Day_6_" + str(cycle_days)
-	filename_tra = filename + ".tra"
-	print(filename_tra)
-	output = filename + ".txt"
+#	 filename = str(cycle_days) + "_cluster"
+#	filename = "Day_6_" + str(cycle_days)
+    filename = "30_days_" + str(cycle_days + 1) + "_loop_3"
+    filename_tra = filename + ".tra"
+    filename_txt = filename + ".txt"
+#    print(filename_tra)
+    output = filename + ".txt"
 
 	# move file to traclus src
-	src = root + '\\' + filename_tra
-	dst = dirpath + '\\' + filename_tra
-	shutil.move(src, dst)
-
-	os.chdir(dirpath)
-	print(os.getcwd())
+    src = root + '\\' + filename_tra
+    dst = dirpath + '\\' + filename_tra
+    shutil.move(src, dst)
+    
+   
+    
+    os.chdir(dirpath)
+    print(os.getcwd())
 	# call(["java", "boliu.Main", filename_tra, output, "29", "8"])
-	call(["java", "boliu.Main", filename_tra, output])
-	os.chdir(root)
-	cycle_days += 1
+    call(["java", "boliu.Main", filename_tra, output])
+    
+    src = dirpath + '\\' + filename_txt
+    dst = root + '\\' + filename_txt
+    shutil.move(src, dst) 
+    
+    os.chdir(root)
+    cycle_days += 1
 
 
 

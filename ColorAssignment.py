@@ -5,6 +5,10 @@ Created on Sat Jan 21 20:37:44 2017
 @author: Ice
 """
 
+import pandas as pd
+import numpy as np
+
+
 def ColorAssignment(dataframe):
 
     try:

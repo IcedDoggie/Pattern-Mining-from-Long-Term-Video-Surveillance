@@ -4,6 +4,7 @@ Created on Sat Jan 21 20:35:33 2017
 
 @author: Ice
 """
+import numpy as np
 
 def chamfer_distance(track_p, track_q):
      
