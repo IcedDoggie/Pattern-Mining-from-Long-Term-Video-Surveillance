@@ -8,6 +8,7 @@ Created on Sat Jan 21 20:34:21 2017
 from trajectory_pivoting_based_on_id import trajectory_pivoting_based_on_id
 from chamfer_distance import chamfer_distance
 import pandas as pd
+import numpy as np
 import math
 
 def calculateSimilarity(representative_trajectory, new_trajectory, parameter_nj):
@@ -17,15 +18,15 @@ def calculateSimilarity(representative_trajectory, new_trajectory, parameter_nj)
 #    
 #    representative_trajectory = pd.DataFrame.as_matrix(representative_trajectory)
 
-    tracks_counter = 0
-    probability_array = []
+#    tracks_counter = 0
+#    probability_array = []
     
     
 #    while tracks_counter < len(pivot_list) - 1:
 #        probability_array += [math.exp( (-parameter_nj[tracks_counter]) * chamfer_distance(new_trajectory,representative_trajectory[ pivot_list[tracks_counter]:pivot_list[tracks_counter+1] ]))]
-    probability_array += [math.exp( (-parameter_nj) * chamfer_distance(new_trajectory,representative_trajectory))]
-
+    probability = [np.exp( (-parameter_nj) * chamfer_distance(new_trajectory,representative_trajectory))]
+    
 #        tracks_counter += 1
 #     print(parameter_nj)
-#    print(probability_array)
-    return max(probability_array)
+
+    return probability

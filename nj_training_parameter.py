@@ -46,6 +46,6 @@ def nj_training_parameter(training_track, representative_track):
 #            combined_param = len(training_track) / bottom_param
 #        parameter_nj += [combined_param]
 #        representative_counter += 1
-    print("parameter nj")
-    print(parameter_nj)
+#    print("parameter nj")
+#    print(parameter_nj)
     return parameter_nj

@@ -167,7 +167,30 @@ def TrajectoryClustering_Traclus(traFileCreation):
     counter_new_day = 0
     nj_parameter_array = np.empty([0])
     threshold_array = np.empty([0])
-
+    
+    ## nj param
+    counter_nj = 0
+    while counter_nj < 5:
+        filename = "30_days_" + str(counter_new_day + 1) + "_loop_2" + ".txt"
+        # 3-> Thursday
+        major_track, end, lines_ori = ReadTraclusExport(filename)
+        temp_major_track = major_track
+        major_track = major_track[['X', 'Y']]
+        major_track = major_track.as_matrix()
+        temp_threshold_array = np.empty([0])
+#        print(temp_major_track)
+        # allFrames 
+        tracks = TrajectoryID_Extraction(major_track, allFrames, end, lines_ori)
+        # tracks -> all tracks under the cluster
+        tracksLine = LinesConstruct(tracks)
+        #tracksline -> extract X & Y(a python list)
+    #    print(filename)
+        nj_param = nj_training_parameter(tracks, temp_major_track)
+        nj_parameter_array = np.append(nj_parameter_array, nj_param)
+        counter_nj += 1
+    nj_param = np.mean(nj_parameter_array)
+    probability_array = np.empty([0])
+    
     while counter_new_day < 5:
 #        filename = "Day_6_" + str(counter_new_day) + ".txt"
         filename = "30_days_" + str(counter_new_day + 1) + "_loop_2" + ".txt"
@@ -182,25 +205,23 @@ def TrajectoryClustering_Traclus(traFileCreation):
         tracks = TrajectoryID_Extraction(major_track, allFrames, end, lines_ori)
         # tracks -> all tracks under the cluster
         tracksLine = LinesConstruct(tracks)
-        #tracksline -> extract X & Y
-    #    print(filename)
-        nj_param = nj_training_parameter(tracks, temp_major_track)
-        nj_parameter_array = np.append(nj_parameter_array, nj_param)
-#        print("major track")        
-#        print(temp_major_track)
-        print("nj style")
-        print(nj_parameter_array)
-        for each in tracksLine:
-            each = each.as_matrix()
-#            print("each!")
-#            print(each)
-            threshold_results = calculateSimilarity(temp_major_track, each, nj_param)
-            temp_threshold_array = np.append(temp_threshold_array, threshold_results)
-            
+        #tracksline -> extract X & Y(a python list)
+        tracks = tracks[['X', 'Y']]
+        tracks = tracks.as_matrix()
+        print("similarity")
+        threshold_results = calculateSimilarity(temp_major_track, tracks, nj_param)
+        temp_threshold_array = np.append(temp_threshold_array, threshold_results)
         
-
+#        print("tracks")
+#        print(len(tracksLine))
+#        for each in tracksLine:
+#            each = each.as_matrix()
+#
+#            threshold_results = calculateSimilarity(temp_major_track, each, nj_param)
+#            temp_threshold_array = np.append(temp_threshold_array, threshold_results)
+  
         threshold_array = np.append(threshold_array, min(temp_threshold_array))
-
+       
         
 #        probability = calculateSimilarity(current_day_representative_track, major_track, nj_parameter)
 #        probability = calculateSimilarity(temp_threshold_array[counter_new_day], major_track, nj_parameter_array[counter_new_day])
@@ -208,17 +229,17 @@ def TrajectoryClustering_Traclus(traFileCreation):
 #        print( "Probability: " + str(probability))
 
         counter_new_day += 1
-
+    threshold_array = np.mean(threshold_array)
     output = open("threshold_array.txt", 'w')
-    for each in threshold_array:
-        output.write(str(each) + "\n")
+    output.write(str(threshold_array))
     output.close()
-    output = open("nj_param.txt", 'w')
-    for each in nj_parameter_array:
-        output.write(str(each) + "\n")
-    output.close()    
+    
+    output = open("nj_param.txt", 'w') 
+    output.write(str(nj_param))
+    print("threshold array")
+    print(threshold_array)
     # print((clusteredTracks))
-    return nj_parameter_array, threshold_array, 
+
     # nj_parameter = nj_training_parameter( concatDay, clusteredTracks)
     # probability = calculateSimilarity(clusteredTracks, test_subject, nj_parameter)
     # print(probability)
