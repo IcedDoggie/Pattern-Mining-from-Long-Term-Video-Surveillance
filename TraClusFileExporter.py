@@ -4,6 +4,7 @@ Created on Sat Jan 21 20:38:20 2017
 
 @author: Ice
 """
+import numpy as np
 
 # Prepare .tra extension file for TraClus clustering algorithm
 def TraClusFileExporter(concatDay, filename):

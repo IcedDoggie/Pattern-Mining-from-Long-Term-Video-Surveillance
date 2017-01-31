@@ -33,7 +33,7 @@ cycle_days = 0
 while cycle_days < 5:
 #	 filename = str(cycle_days) + "_cluster"
 #	filename = "Day_6_" + str(cycle_days)
-    filename = "30_days_" + str(cycle_days + 1) + "_loop_3"
+    filename = "30_days_" + str(cycle_days + 1) + "_loop_2"
     filename_tra = filename + ".tra"
     filename_txt = filename + ".txt"
 #    print(filename_tra)

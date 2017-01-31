@@ -47,36 +47,6 @@ else:
 pd.options.display.max_rows = 100
 ###################################################################################################
 
-
-#### Calling all functions #####
-#direction_Code = open('DirectionCalculation.py').read()
-#calendar_Code = open('calendarFunction.py').read()
-#chamferDistance_Code = open('chamfer_distance.py').read()
-#colorAssignment_Code = open('ColorAssignment.py').read()
-#linesConstruct_Code = open('LinesConstruct.py').read()
-#nj_training_Code = open('nj_training_parameter.py').read()
-#readTraclusExport_Code = open('ReadTraclusExport.py').read()
-#reindex_Code = open('trackID_reindex.py').read()
-#traclusExport_Code = open('TraClusFileExporter.py').read()
-#pivoting_Code = open('trajectory_pivoting_based_on_id.py').read()
-#trajectoryID_Code = open('TrajectoryID_Extraction.py').read()
-#similarity_Code = open('calculateSimilarity.py').read()
-#visualizer_Code = open('Visualizer.py').read()
-##
-#exec(direction_Code)
-#exec(calendar_Code)
-#exec(chamferDistance_Code)
-#exec(colorAssignment_Code)
-#exec(linesConstruct_Code)
-#exec(nj_training_Code)
-#exec(readTraclusExport_Code)
-#exec(reindex_Code)
-#exec(traclusExport_Code)
-#exec(pivoting_Code)
-#exec(trajectoryID_Code)
-#exec(similarity_Code)
-#exec(visualizer_Code)
-
     ###############################string concatenation & Load Data########################
 def TrajectoryClustering_Traclus(traFileCreation):
     #####################################string variables##############################################
@@ -107,7 +77,7 @@ def TrajectoryClustering_Traclus(traFileCreation):
     saturdayList = []
     sundayList = []
     counter_listDay = 0
-    day_to_analyze = 3 #0 - monday, 6 - sunday #can prompt for input later
+    day_to_analyze = 2 #0 - monday, 6 - sunday #can prompt for input later
     allFrames = pd.DataFrame() #this is to get back the trajectory for calculating threshold
     
     # probability calculation
@@ -169,53 +139,7 @@ def TrajectoryClustering_Traclus(traFileCreation):
     visualize_num = 5
     visualize_count = 0
     inner_loop_count = 0
-    
-    #################### Visualizing first hierarchy ######################
-    #while inner_loop_count <= 6:
-    #     concat_df = pd.DataFrame()
-    #     visualize_count = 0
-    #     currentIndex = 1
-    #     while visualize_count < visualize_num:
-    #         visualize_count += 1
-    ##         filename = '30_days_' + str(visualize_count) + "_loop_" + str(inner_loop_count)
-    #         filename = str(inner_loop_count) + "_cluster" 
-    #         filename_extension = filename + ".txt"
-    #        
-    #         clusteredTracks = ReadTraclusExport(filename_extension)
-    #         tempString_Date, currentIndex = trackID_reindex(clusteredTracks, currentIndex)
-    #         concat_df = concat_df.append(tempString_Date)
-    #         cluster = TrajectoryID_Extraction(clusteredTracks)
-    #         colors_for_lines = ColorAssignment(clusteredTracks)
-    #         cluster_line = LinesConstruct(clusteredTracks)
-    ##         Visualizer(cluster_line, colors_for_lines, filename)
-    #    
-    #    print(cluster)
-    ##     filename = str(inner_loop_count) + "_cluster.tra"  
-    ##     concat_df = concat_df.sort_values(by='TrackID', ascending=True)
-    ##     concat_df = concat_df.reset_index(drop=True)    
-    ##     TraClusFileExporter(concat_df, filename)    
-    #     inner_loop_count += 1
-    ########################################################################
-    
-    #################### Visualizing second hierarchy ######################
-    current_day_to_be_analyzed = 0
-    day_counter = 0
-    while day_counter <= 6:
-        filename = str(day_counter) + "_cluster" 
-        filename_extension = filename + ".txt"
         
-        clusteredTracks, end, lines_ori = ReadTraclusExport(filename_extension)
-        if current_day_to_be_analyzed == day_counter:
-            current_day_representative_track = clusteredTracks        # this line get the representative track for particular day
-            nj_parameter = nj_training_parameter( concatDay, current_day_representative_track )
-    #        print("nj param: " + str(nj_parameter))
-        cluster = TrajectoryID_Extraction(clusteredTracks, allFrames, end, lines_ori)
-        colors_for_lines = ColorAssignment(clusteredTracks)
-        cluster_line = LinesConstruct(clusteredTracks)
-        
-    #     Visualizer(cluster_line, colors_for_lines, filename)
-    #     print(clusteredTracks)
-        day_counter += 1
     
     #####################################Visualizing##########################################
     
@@ -239,31 +163,62 @@ def TrajectoryClustering_Traclus(traFileCreation):
     ##########################################################################################
     
     ######################################### Anomaly Mining ###################################################
-    threshold = 0.03
     # test_subject = np.array([[200,300],[100,150]])
     counter_new_day = 0
+    nj_parameter_array = np.empty([0])
+    threshold_array = np.empty([0])
 
     while counter_new_day < 5:
 #        filename = "Day_6_" + str(counter_new_day) + ".txt"
-        filename = "30_days_" + str(counter_new_day + 1) + "_loop_3" + ".txt"
+        filename = "30_days_" + str(counter_new_day + 1) + "_loop_2" + ".txt"
+        # 3-> Thursday
         major_track, end, lines_ori = ReadTraclusExport(filename)
+        temp_major_track = major_track
         major_track = major_track[['X', 'Y']]
         major_track = major_track.as_matrix()
-        
+        temp_threshold_array = np.empty([0])
+#        print(temp_major_track)
+        # allFrames 
         tracks = TrajectoryID_Extraction(major_track, allFrames, end, lines_ori)
+        # tracks -> all tracks under the cluster
         tracksLine = LinesConstruct(tracks)
+        #tracksline -> extract X & Y
     #    print(filename)
-    #    print(major_track)
+        nj_param = nj_training_parameter(tracks, temp_major_track)
+        nj_parameter_array = np.append(nj_parameter_array, nj_param)
+#        print("major track")        
+#        print(temp_major_track)
+        print("nj style")
+        print(nj_parameter_array)
         for each in tracksLine:
             each = each.as_matrix()
-            threshold_calculation(major_track, each)
+#            print("each!")
+#            print(each)
+            threshold_results = calculateSimilarity(temp_major_track, each, nj_param)
+            temp_threshold_array = np.append(temp_threshold_array, threshold_results)
+            
+        
 
-        probability = calculateSimilarity(current_day_representative_track, major_track, nj_parameter)
-    #    print( "Probability: " + str(probability))
+        threshold_array = np.append(threshold_array, min(temp_threshold_array))
+
+        
+#        probability = calculateSimilarity(current_day_representative_track, major_track, nj_parameter)
+#        probability = calculateSimilarity(temp_threshold_array[counter_new_day], major_track, nj_parameter_array[counter_new_day])
+
+#        print( "Probability: " + str(probability))
+
         counter_new_day += 1
-    
+
+    output = open("threshold_array.txt", 'w')
+    for each in threshold_array:
+        output.write(str(each) + "\n")
+    output.close()
+    output = open("nj_param.txt", 'w')
+    for each in nj_parameter_array:
+        output.write(str(each) + "\n")
+    output.close()    
     # print((clusteredTracks))
-    
+    return nj_parameter_array, threshold_array, 
     # nj_parameter = nj_training_parameter( concatDay, clusteredTracks)
     # probability = calculateSimilarity(clusteredTracks, test_subject, nj_parameter)
     # print(probability)
