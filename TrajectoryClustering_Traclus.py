@@ -34,7 +34,8 @@ from TrajectoryID_Extraction import TrajectoryID_Extraction
 from calculateSimilarity import calculateSimilarity
 from Visualizer import Visualizer
 from threshold_calculation import threshold_calculation
-
+from runTraClus import runTraClus
+from anomaly_detection import anomaly_detection
 
 import sys
 if sys.version_info[0] < 3: 
@@ -48,7 +49,7 @@ pd.options.display.max_rows = 100
 ###################################################################################################
 
     ###############################string concatenation & Load Data########################
-def TrajectoryClustering_Traclus(traFileCreation):
+def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
     #####################################string variables##############################################
     dayArray = ['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17'
     ,'18','19','20','21','22','23','24','25','26','27','28','29','30','31']
@@ -63,7 +64,7 @@ def TrajectoryClustering_Traclus(traFileCreation):
     currentDay = dayArray[0]
     pointerMonth = 0
     pointerDay = 0
-    daysToChoose = 30 #30 for original experiment
+    daysToChoose = 180 #30 for original experiment
     cycle_loop = 5
     cycle_counter = 0
     listDay = []
@@ -77,7 +78,7 @@ def TrajectoryClustering_Traclus(traFileCreation):
     saturdayList = []
     sundayList = []
     counter_listDay = 0
-    day_to_analyze = 2 #0 - monday, 6 - sunday #can prompt for input later
+#    day_to_analyze = 2 #0 - monday, 6 - sunday #can prompt for input later
     allFrames = pd.DataFrame() #this is to get back the trajectory for calculating threshold
     
     # probability calculation
@@ -115,7 +116,8 @@ def TrajectoryClustering_Traclus(traFileCreation):
             currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)
             
             # export tra file for one day
-            filename = "Day_" + str(day_to_analyze) + "_" + str(cycle_counter) + ".tra"
+#            filename = "Day_" + str(day_to_analyze) + "_" + str(cycle_counter) + ".tra"
+            filename = "All_days_" + str(day_to_analyze) + ".txt" 
     #         TraClusFileExporter(tempString_Date, filename)
     #     #######################################################################################
     
@@ -130,7 +132,7 @@ def TrajectoryClustering_Traclus(traFileCreation):
         cycle_counter += 1
     #     ####################################File Preparation###########################################
         if traFileCreation == True:        
-            filename = "30_days_" + str(cycle_counter) + "_loop_" + str(day_to_analyze) + ".tra"
+#            filename = "30_days_" + str(cycle_counter) + "_loop_" + str(day_to_analyze) + ".tra"
             TraClusFileExporter(concatDay, filename)
         ###############################################################################################
         
@@ -139,7 +141,11 @@ def TrajectoryClustering_Traclus(traFileCreation):
     visualize_num = 5
     visualize_count = 0
     inner_loop_count = 0
-        
+    
+    #### runTraClus ####
+    if traFileCreation == True:
+        runTraClus(day_to_analyze)
+    ####################
     
     #####################################Visualizing##########################################
     
@@ -171,7 +177,7 @@ def TrajectoryClustering_Traclus(traFileCreation):
     ## nj param
     counter_nj = 0
     while counter_nj < 5:
-        filename = "30_days_" + str(counter_new_day + 1) + "_loop_2" + ".txt"
+        filename = "30_days_" + str(counter_new_day + 1) + "_loop_" + str(day_to_analyze) + ".txt"
         # 3-> Thursday
         major_track, end, lines_ori = ReadTraclusExport(filename)
         temp_major_track = major_track
@@ -191,11 +197,17 @@ def TrajectoryClustering_Traclus(traFileCreation):
     nj_param = np.mean(nj_parameter_array)
     probability_array = np.empty([0])
     
+    
+    # array for second level clustering
+    array_second_representative = np.empty([0])
+    # threshold calculation
     while counter_new_day < 5:
 #        filename = "Day_6_" + str(counter_new_day) + ".txt"
-        filename = "30_days_" + str(counter_new_day + 1) + "_loop_2" + ".txt"
+#        filename = "30_days_" + str(counter_new_day + 1) + "_loop_" + str(day_to_analyze) + ".txt"
+        filename = "All_days_" + str(day_to_analyze) + ".txt"        
         # 3-> Thursday
         major_track, end, lines_ori = ReadTraclusExport(filename)
+        array_second_representative = np.append(array_second_representative, major_track)
         temp_major_track = major_track
         major_track = major_track[['X', 'Y']]
         major_track = major_track.as_matrix()
@@ -211,38 +223,29 @@ def TrajectoryClustering_Traclus(traFileCreation):
         print("similarity")
         threshold_results = calculateSimilarity(temp_major_track, tracks, nj_param)
         temp_threshold_array = np.append(temp_threshold_array, threshold_results)
-        
-#        print("tracks")
-#        print(len(tracksLine))
-#        for each in tracksLine:
-#            each = each.as_matrix()
-#
-#            threshold_results = calculateSimilarity(temp_major_track, each, nj_param)
-#            temp_threshold_array = np.append(temp_threshold_array, threshold_results)
-  
+          
         threshold_array = np.append(threshold_array, min(temp_threshold_array))
-       
-        
-#        probability = calculateSimilarity(current_day_representative_track, major_track, nj_parameter)
-#        probability = calculateSimilarity(temp_threshold_array[counter_new_day], major_track, nj_parameter_array[counter_new_day])
-
-#        print( "Probability: " + str(probability))
 
         counter_new_day += 1
-    threshold_array = np.mean(threshold_array)
-    output = open("threshold_array.txt", 'w')
+        
+        
+
+    print(threshold_array) 
+    threshold_array = np.sort(threshold_array)
+    threshold_array = np.percentile(threshold_array, 25)
+    file = "threshold_array_" + str(day_to_analyze) + ".txt" 
+    output = open(file, 'w')
     output.write(str(threshold_array))
     output.close()
     
-    output = open("nj_param.txt", 'w') 
+    file = "nj_param_" + str(day_to_analyze) + ".txt"
+    output = open(file, 'w') 
     output.write(str(nj_param))
     print("threshold array")
     print(threshold_array)
-    # print((clusteredTracks))
-
-    # nj_parameter = nj_training_parameter( concatDay, clusteredTracks)
-    # probability = calculateSimilarity(clusteredTracks, test_subject, nj_parameter)
-    # print(probability)
     ############################################################################################################
 #    print(allFrames)
-TrajectoryClustering_Traclus(False)
+TrajectoryClustering_Traclus(True, 5)
+#anomaly_detection(True, 6)
+
+#TrajectoryClustering_Traclus(True, 3)

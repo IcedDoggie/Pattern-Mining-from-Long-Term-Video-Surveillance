@@ -58,5 +58,5 @@ def chamfer_distance(track_p, track_q):
     second_term = min(check_min_tp_tq)  
     
     distance = first_term * second_term
-    print(distance)
+#    print(distance)
     return distance

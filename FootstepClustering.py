@@ -20,6 +20,12 @@ from matplotlib import collections as mc
 import os
 import matplotlib.ticker as ticker
 import collections
+from agglomerativeClustering import agglomerativeClustering
+from fancy_dendrogram import fancy_dendrogram
+from heatmapPooling import heatmapPooling
+from heatmapConstruction import heatmapConstruction
+from trackID_reindex import trackID_reindex
+from calendarFunction import calendarFunction
 
 import sys
 if sys.version_info[0] < 3: 
@@ -49,23 +55,7 @@ pointerDay = 0
 daysToChoose = 235 # currently hardcoded, 235 is for entire year of 2012
 #####################################################################################################
 
-############# Calling functions #############
-agglomerativeClustering_Code = open('agglomerativeClustering.py').read()
-fancydendrogram_Code = open('fancy_dendrogram.py').read()
-heatmapPool_Code = open('heatmapPooling.py').read()
-histogram_Code = open('histogram.py').read()
-heatmap_Code = open('heatmapConstruction.py').read()
-trackID_Code = open('trackID_reindex.py').read()
-calendar_Code = open('calendarFunction.py').read()
 
-exec(agglomerativeClustering_Code)
-exec(fancydendrogram_Code)
-exec(heatmapPool_Code)
-exec(histogram_Code)
-exec(heatmap_Code)
-exec(trackID_Code)
-exec(calendar_Code)
-#############################################
 
 
 ###############################string concatenation & Load Data########################
