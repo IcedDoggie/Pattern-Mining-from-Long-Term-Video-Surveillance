@@ -107,6 +107,7 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
                 tempString_Date, currentIndex = trackID_reindex(tempString_Date, currentIndex)
                 if dayInWeek == day_to_analyze:
                     frames = frames.append(tempString_Date)
+                    print(date)
 #                print("Yes!")
             except:
                 counter -= 1
@@ -245,7 +246,21 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
     print(threshold_array)
     ############################################################################################################
 #    print(allFrames)
+TrajectoryClustering_Traclus(True, 0)
+anomaly_detection(True, 0)
+TrajectoryClustering_Traclus(True, 1)
+anomaly_detection(True, 1)
+TrajectoryClustering_Traclus(True, 2)
+anomaly_detection(True, 2)
 TrajectoryClustering_Traclus(True, 3)
+anomaly_detection(True, 3)
+TrajectoryClustering_Traclus(True, 4)
+anomaly_detection(True, 4)
+#TrajectoryClustering_Traclus(True, 5)
+#anomaly_detection(True, 5)
+#TrajectoryClustering_Traclus(True, 6)
+#anomaly_detection(True, 6)
+
 #anomaly_detection(True, 6)
 
 #TrajectoryClustering_Traclus(True, 3)
