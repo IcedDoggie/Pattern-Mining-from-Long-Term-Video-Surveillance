@@ -64,7 +64,7 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
     currentDay = dayArray[0]
     pointerMonth = 0
     pointerDay = 0
-    daysToChoose = 180 #30 for original experiment
+    daysToChoose = 30 #30 for original experiment
     cycle_loop = 5
     cycle_counter = 0
     listDay = []
@@ -116,8 +116,8 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
             currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)
             
             # export tra file for one day
-#            filename = "Day_" + str(day_to_analyze) + "_" + str(cycle_counter) + ".tra"
-            filename = "All_days_" + str(day_to_analyze) + ".txt" 
+            filename = "Day_" + str(day_to_analyze) + "_" + str(cycle_counter) + ".tra"
+#            filename = "All_days_" + str(day_to_analyze) + ".txt" 
     #         TraClusFileExporter(tempString_Date, filename)
     #     #######################################################################################
     
@@ -132,7 +132,7 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
         cycle_counter += 1
     #     ####################################File Preparation###########################################
         if traFileCreation == True:        
-#            filename = "30_days_" + str(cycle_counter) + "_loop_" + str(day_to_analyze) + ".tra"
+            filename = "30_days_" + str(cycle_counter) + "_loop_" + str(day_to_analyze) + ".tra"
             TraClusFileExporter(concatDay, filename)
         ###############################################################################################
         
@@ -203,8 +203,8 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
     # threshold calculation
     while counter_new_day < 5:
 #        filename = "Day_6_" + str(counter_new_day) + ".txt"
-#        filename = "30_days_" + str(counter_new_day + 1) + "_loop_" + str(day_to_analyze) + ".txt"
-        filename = "All_days_" + str(day_to_analyze) + ".txt"        
+        filename = "30_days_" + str(counter_new_day + 1) + "_loop_" + str(day_to_analyze) + ".txt"
+#        filename = "All_days_" + str(day_to_analyze) + ".txt"        
         # 3-> Thursday
         major_track, end, lines_ori = ReadTraclusExport(filename)
         array_second_representative = np.append(array_second_representative, major_track)
@@ -245,7 +245,7 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
     print(threshold_array)
     ############################################################################################################
 #    print(allFrames)
-TrajectoryClustering_Traclus(True, 5)
+TrajectoryClustering_Traclus(True, 3)
 #anomaly_detection(True, 6)
 
 #TrajectoryClustering_Traclus(True, 3)
