@@ -24,14 +24,14 @@ def ColorAssignment(dataframe):
                                   np.where(dataframe['ClusterID'] == 2, 'cyan',
                                            np.where(dataframe['ClusterID'] == 3, 'magenta','black'))))    
     counter = 1
-    helper_color = tempColor[0]
+#    helper_color = tempColor[0]
     tempColor2 = []
-    tempColor2 += [helper_color]
-    while counter < len(tempColor):
-        if helper_color != tempColor[counter]:
-            tempColor2 += [tempColor[counter]]
-            helper_color = tempColor[counter]
-        counter += 1
+#    tempColor2 += [helper_color]
+#    while counter < len(tempColor):
+#        if helper_color != tempColor[counter]:
+#            tempColor2 += [tempColor[counter]]
+#            helper_color = tempColor[counter]
+#        counter += 1
 
-    return tempColor2
+    return tempColor
     ######################################################  

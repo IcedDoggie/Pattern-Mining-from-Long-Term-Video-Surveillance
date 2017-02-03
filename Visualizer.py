@@ -4,11 +4,18 @@ Created on Sat Jan 21 20:38:44 2017
 
 @author: Ice
 """
+from matplotlib import collections as mc 
+import matplotlib.pyplot as plt
+import matplotlib.figure as fig
+import matplotlib.image as mpimg
+import numpy as np
 
-def Visualizer(list_of_lines, lineColor, filename):
+def Visualizer(list_of_lines, lineColor):
     indices = [0, 1]
     counterForLineConstruction = 0
 
+#    print(list_of_lines.shape)
+    print(list_of_lines)
     #line preparation
     #### Visualize line with Color
     linesegment = mc.LineCollection(list_of_lines, linewidths = 2, linestyles='solid', colors=lineColor)
@@ -30,6 +37,6 @@ def Visualizer(list_of_lines, lineColor, filename):
     plt.gca().invert_yaxis()
     im = plt.imread('overlayingImage.png')
     implot = plt.imshow(im)
-#     plt.savefig(filename)
+#    plt.savefig(filename)
     plt.show()
     

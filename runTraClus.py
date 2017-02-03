@@ -3,13 +3,13 @@ from os.path import isfile, join
 from subprocess import call
 import sys
 import shutil
-def runTraClus(day_to_analyze):
+def runTraClus(day_to_analyze, cycle_loop):
     dirpath = 'E:\Documents\MMU Studies\Python Scripts\TraClusAlgorithm\src'
     root = 'E:\Documents\MMU Studies\Python Scripts'
     
     cycle_days = 0
 #    day_to_analyze = 1
-    while cycle_days < 5:
+    while cycle_days < cycle_loop:
     #	 filename = str(cycle_days) + "_cluster"
     #	filename = "Day_6_" + str(cycle_days)
         filename = "30_days_" + str(cycle_days + 1) + "_loop_" + str(day_to_analyze)

@@ -66,8 +66,8 @@ def anomaly_detection(traFileCreation, day_to_analyze):
     currentDay = dayArray[0]
     pointerMonth = 0
     pointerDay = 0
-    daysToChoose = 180 #30 for original experiment
-    cycle_loop = 5
+    daysToChoose = 235 #30 for original experiment
+    cycle_loop = 8
     cycle_counter = 0
     listDay = []
     
@@ -91,7 +91,7 @@ def anomaly_detection(traFileCreation, day_to_analyze):
     output = open(threshold_filename)
     trained_threshold = output.read()
     trained_threshold = float(trained_threshold)
-    print(trained_threshold)
+#    print(trained_threshold)
     output.close()    
     
 #    trained_threshold = trained_threshold.as_matrix()    
@@ -126,13 +126,13 @@ def anomaly_detection(traFileCreation, day_to_analyze):
             if dayInWeek == day_to_analyze:
                 frames = frames.append(tempString_Date)
                 date_array = np.append(date_array, str(date))
-                print(str(date))
+#                print(str(date))
         except:
             counter -= 1
 #            print("Nope!")
         counter += 1
-        if currentYear == 2013:
-            break  
+#        if currentYear == 2013:
+#            break  
         currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)
     #     #######################################################################################
         os.chdir('E:\Documents\MMU Studies\Python Scripts')        
@@ -158,7 +158,8 @@ def anomaly_detection(traFileCreation, day_to_analyze):
     anomaly_trigger = np.empty([0])
     ### Choose representative file with most representative tracks  
     highest_track_count = 0
-    while counter < 5:
+    while counter < cycle_loop:
+#        print(counter)
         filename_representative = "30_days_" + str(counter + 1) + "_loop_" + str(day_to_analyze) + ".txt"
         representative_track_temp, end2, lines_ori2 = ReadTraclusExport(filename_representative)        
         representative_track_temp = LinesConstruct(representative_track_temp)
@@ -168,30 +169,36 @@ def anomaly_detection(traFileCreation, day_to_analyze):
         
     
     counter = 0
+    
     while counter < len(date_array):
         
         filename = str(counter) + "_" + str(day_to_analyze) + ".txt"     
         filename_representative = "30_days_" + str(highest_track_count) + "_loop_" + str(day_to_analyze) + ".txt"
-
+        emptytracks = False
         print(filename)        
 #        filename_representative = "All_days_6.txt"
-        new_track, end, lines_ori = ReadTraclusExport(filename)
-        representative_track, end2, lines_ori2 = ReadTraclusExport(filename_representative)        
-        
-#        print(representative_track)
-        new_track = new_track[['X', 'Y']]
-        new_track = new_track.as_matrix()
-        threshold_results = calculateSimilarity(representative_track, new_track, nj_param)
-        counter += 1
-#        print("threshold results")
-#        print(threshold_results) 
-        threshold_mining = np.append(threshold_mining, threshold_results)
-        print(type(trained_threshold))        
-        print(threshold_results)        
-        if threshold_results[0] < trained_threshold:
-            anomaly_trigger = np.append(anomaly_trigger, 1)
-        else:
-            anomaly_trigger = np.append(anomaly_trigger, 0)
+        try:
+            new_track, end, lines_ori = ReadTraclusExport(filename)
+        except:
+            emptytracks = True
+            counter += 1
+        if emptytracks == False:
+            representative_track, end2, lines_ori2 = ReadTraclusExport(filename_representative)        
+            
+    #        print(representative_track)
+            new_track = new_track[['X', 'Y']]
+            new_track = new_track.as_matrix()
+            threshold_results = calculateSimilarity(representative_track, new_track, nj_param)
+            counter += 1
+    #        print("threshold results")
+    #        print(threshold_results) 
+            threshold_mining = np.append(threshold_mining, threshold_results)
+#            print(type(trained_threshold))        
+#            print(threshold_results)        
+            if threshold_results[0] < trained_threshold:
+                anomaly_trigger = np.append(anomaly_trigger, 1)
+            else:
+                anomaly_trigger = np.append(anomaly_trigger, 0)
             
     
     counter = 0
@@ -203,3 +210,4 @@ def anomaly_detection(traFileCreation, day_to_analyze):
         counter += 1
     output.close()
 
+#anomaly_detection(True, 6)

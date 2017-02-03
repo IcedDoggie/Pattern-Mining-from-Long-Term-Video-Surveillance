@@ -65,7 +65,7 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
     pointerMonth = 0
     pointerDay = 0
     daysToChoose = 30 #30 for original experiment
-    cycle_loop = 5
+    cycle_loop = 8
     cycle_counter = 0
     listDay = []
     
@@ -117,7 +117,7 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
             currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)
             
             # export tra file for one day
-            filename = "Day_" + str(day_to_analyze) + "_" + str(cycle_counter) + ".tra"
+#            filename = "Day_" + str(day_to_analyze) + "_" + str(cycle_counter) + ".tra"
 #            filename = "All_days_" + str(day_to_analyze) + ".txt" 
     #         TraClusFileExporter(tempString_Date, filename)
     #     #######################################################################################
@@ -130,7 +130,9 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
         
     #    print(concatDay)
         os.chdir('E:\Documents\MMU Studies\Python Scripts')
+#        print("traclus cyclecounter")
         cycle_counter += 1
+#        print(cycle_counter)
     #     ####################################File Preparation###########################################
         if traFileCreation == True:        
             filename = "30_days_" + str(cycle_counter) + "_loop_" + str(day_to_analyze) + ".tra"
@@ -145,7 +147,7 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
     
     #### runTraClus ####
     if traFileCreation == True:
-        runTraClus(day_to_analyze)
+        runTraClus(day_to_analyze, cycle_loop)
     ####################
     
     #####################################Visualizing##########################################
@@ -156,10 +158,10 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
         # average_grad_X, average_grad_Y = calculateVector(clusteredTracks)
     
         # #For All Clusters
-    # cluster = TrajectoryID_Extraction(clusteredTracks)
-    # colors_for_lines = ColorAssignment(clusteredTracks)
-    # cluster_line = LinesConstruct(clusteredTracks)
-    # Visualizer(cluster_line, colors_for_lines)
+#    cluster = TrajectoryID_Extraction(clusteredTracks)
+#    colors_for_lines = ColorAssignment(cluster)
+#    cluster_line = LinesConstruct(cluster)
+#    Visualizer(cluster, colors_for_lines)
     
     #For Separate cluster
     # cluster = TrajectoryID_Extraction(clusteredTracks)
@@ -177,14 +179,21 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
     
     ## nj param
     counter_nj = 0
-    while counter_nj < 5:
-        filename = "30_days_" + str(counter_new_day + 1) + "_loop_" + str(day_to_analyze) + ".txt"
+    while counter_nj < cycle_loop:
+        filename = "30_days_" + str(counter_nj + 1) + "_loop_" + str(day_to_analyze) + ".txt"
         # 3-> Thursday
         major_track, end, lines_ori = ReadTraclusExport(filename)
         temp_major_track = major_track
         major_track = major_track[['X', 'Y']]
         major_track = major_track.as_matrix()
         temp_threshold_array = np.empty([0])
+        
+#        cluster = TrajectoryID_Extraction(temp_major_track, temp_major_track, end, lines_ori)
+            
+        colors_for_lines = ColorAssignment(temp_major_track)
+        cluster_line = LinesConstruct(temp_major_track)
+        Visualizer(cluster_line, colors_for_lines)     
+        
 #        print(temp_major_track)
         # allFrames 
         tracks = TrajectoryID_Extraction(major_track, allFrames, end, lines_ori)
@@ -202,7 +211,7 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
     # array for second level clustering
     array_second_representative = np.empty([0])
     # threshold calculation
-    while counter_new_day < 5:
+    while counter_new_day < cycle_loop:
 #        filename = "Day_6_" + str(counter_new_day) + ".txt"
         filename = "30_days_" + str(counter_new_day + 1) + "_loop_" + str(day_to_analyze) + ".txt"
 #        filename = "All_days_" + str(day_to_analyze) + ".txt"        
@@ -221,7 +230,7 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
         #tracksline -> extract X & Y(a python list)
         tracks = tracks[['X', 'Y']]
         tracks = tracks.as_matrix()
-        print("similarity")
+#        print("similarity")
         threshold_results = calculateSimilarity(temp_major_track, tracks, nj_param)
         temp_threshold_array = np.append(temp_threshold_array, threshold_results)
           
@@ -233,7 +242,7 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
 
     print(threshold_array) 
     threshold_array = np.sort(threshold_array)
-    threshold_array = np.percentile(threshold_array, 25)
+    threshold_array = np.percentile(threshold_array, 50)
     file = "threshold_array_" + str(day_to_analyze) + ".txt" 
     output = open(file, 'w')
     output.write(str(threshold_array))
@@ -242,20 +251,20 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze):
     file = "nj_param_" + str(day_to_analyze) + ".txt"
     output = open(file, 'w') 
     output.write(str(nj_param))
-    print("threshold array")
-    print(threshold_array)
+#    print("threshold array")
+#    print(threshold_array)
     ############################################################################################################
 #    print(allFrames)
-TrajectoryClustering_Traclus(True, 0)
-anomaly_detection(True, 0)
-TrajectoryClustering_Traclus(True, 1)
-anomaly_detection(True, 1)
-TrajectoryClustering_Traclus(True, 2)
-anomaly_detection(True, 2)
-TrajectoryClustering_Traclus(True, 3)
-anomaly_detection(True, 3)
+#TrajectoryClustering_Traclus(True, 0)
+#anomaly_detection(True, 0)
+#TrajectoryClustering_Traclus(True, 1)
+#anomaly_detection(True, 1)
+#TrajectoryClustering_Traclus(True, 2)
+#anomaly_detection(True, 2)
+#TrajectoryClustering_Traclus(True, 3)
+#anomaly_detection(True, 3)
 TrajectoryClustering_Traclus(True, 4)
-anomaly_detection(True, 4)
+#anomaly_detection(True, 4)
 #TrajectoryClustering_Traclus(True, 5)
 #anomaly_detection(True, 5)
 #TrajectoryClustering_Traclus(True, 6)
