@@ -71,7 +71,7 @@ The data format is as follows:
 Proceedings of the 2007 ACM SIGMOD international conference on Management of data. ACM, 2007.
 
 
-# Realse Note
+# Release Note
 
 03/10/2016   fix a bug (reported by @luca-zamboni) that will throw InputMismatchException while the code is downloaded in some      countries.
 
@@ -84,4 +84,6 @@ Proceedings of the 2007 ACM SIGMOD international conference on Management of dat
 
 
 
+
+# Pattern-Mining-from-Long-Term-Video-Surveillance
 
