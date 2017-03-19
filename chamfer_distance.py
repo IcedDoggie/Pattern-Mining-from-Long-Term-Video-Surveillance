@@ -46,15 +46,6 @@ def chamfer_distance(track_p, track_q):
 #    print(min(check_min_tp_tq))
     
         
-    #backup
-#    for points in track_p:
-#        temp_dist = np.subtract(track_q[:,0], points[0])
-#        temp_dist2 = np.subtract(track_q[:,1], points[1])
-#        temp_dist = np.add(temp_dist, temp_dist2)
-#        temp_dist = np.power(temp_dist, 2)
-#        temp_dist = min(temp_dist)
-#        difference_tp_tq += [temp_dist]
-#     print(difference_tp_tq)
     second_term = min(check_min_tp_tq)  
     
     distance = first_term * second_term

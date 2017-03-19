@@ -116,8 +116,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         os.chdir(traj_dir)
         stringDate = '001_' + str(currentYear) + str(currentMonth) + str(currentDay) + '.txt' 
         date = str(currentYear) + str(currentMonth) + str(currentDay)
-        string_to_be_parsed = "pd.read_table('" + stringDate + "',delimiter=' ', header=None, names=col_names)"
-        print(date)        
+        string_to_be_parsed = "pd.read_table('" + stringDate + "',delimiter=' ', header=None, names=col_names)"     
         datetime_convert = datetime.strptime(date, '%Y%m%d')
         dayInWeek = datetime_convert.weekday()
         try:
@@ -130,10 +129,9 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
                 print(str(date))
         except:
             counter -= 1
-#            print("Nope!")
+            
         counter += 1
-#        if currentYear == 2013:
-#            break  
+
         currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)
     #     #######################################################################################
         os.chdir(root_dir)        
@@ -142,19 +140,11 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
             allFrames = allFrames.append(concatDay)
             concatDay = concatDay.reset_index(drop=True)
             if traFileCreation == True and dayInWeek == day_to_analyze:    
-#                filename = str(date) + "_" + str(day_to_analyze) + ".tra"
-#                filename = str(counter_file) + "_" + str(day_to_analyze) + ".tra"
-#                TraClusFileExporter(concatDay, filename)
                 counter_file += 1
     
-    #### Cluster each day's track #### #Since we try to compare every traj,
-    # hence this is not usable anymore
-#    if traFileCreation == True:
-#        runTraClus_singleDay(day_to_analyze, len(date_array))    
     
-    #### Cluster each day's track ####
-#    if traFileCreation == True:
-#        runTraClus_singleDay(day_to_analyze, len(date_array))  
+ 
+    
     ##################################
     
     counter = 0
@@ -163,47 +153,37 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     ### Choose representative file with most representative tracks  
     highest_track_count = 0
     while counter < cycle_loop:
-#        print(counter)
         filename_representative = "30_days_" + str(counter + 1) + "_loop_" + str(day_to_analyze) + ".txt"
         representative_track_temp, end2, lines_ori2 = ReadTraclusExport(filename_representative)        
         representative_track_temp = LinesConstruct(representative_track_temp)
         if len(representative_track_temp) > highest_track_count:
             highest_track_count = counter + 1
         counter += 1        
-        
-    
     counter = 0
 
-    while counter < len(date_array):        
-        filename = str(counter) + "_" + str(day_to_analyze) + ".txt"     
-        imgname = str(counter) + "_" + str(day_to_analyze) + ".jpg" 
-        filename_representative = "30_days_" + str(highest_track_count) + "_loop_" + str(day_to_analyze) + ".txt"
-        emptytracks = False
-
-        try:
-            new_track, end, lines_ori = ReadTraclusExport(filename)
-        except:
-            emptytracks = True
-            counter += 1
-        if emptytracks == False:
-            representative_track, end2, lines_ori2 = ReadTraclusExport(filename_representative)        
-            colors_for_lines = ColorAssignment(new_track)
-            cluster_line = LinesConstruct(new_track)
-            Visualizer(cluster_line, colors_for_lines, imgname)                 
-    #        print(representative_track)
-            new_track = new_track[['X', 'Y']]
-            new_track = new_track.as_matrix()
-            threshold_results = calculateSimilarity(representative_track, new_track, nj_param)
-            counter += 1
-            print("threshold results")
-            print(threshold_results) 
-            threshold_mining = np.append(threshold_mining, threshold_results)
-#            print(type(trained_threshold))        
-#            print(threshold_results)        
-            if threshold_results[0] < trained_threshold:
-                anomaly_trigger = np.append(anomaly_trigger, 1)
-            else:
-                anomaly_trigger = np.append(anomaly_trigger, 0)
+       
+    filename_representative = "30_days_" + str(highest_track_count) + "_loop_" + str(day_to_analyze) + ".txt"
+    emptytracks = False
+    os.chdir(traj_dir)
+    try:
+        new_track = concatDay[['TrackID', 'X', 'Y']]
+    except:
+        emptytracks = True
+        counter += 1
+    if emptytracks == False:
+        os.chdir(root_dir)
+        representative_track, end2, lines_ori2 = ReadTraclusExport(filename_representative)               
+        cluster_line = LinesConstruct(new_track)
+        threshold_results = calculateSimilarity(representative_track, cluster_line, nj_param)        
+        counter += 1
+        print("threshold results")
+        print(threshold_results) 
+        threshold_mining = np.append(threshold_mining, threshold_results)
+        
+        if threshold_results[0] < trained_threshold:
+            anomaly_trigger = np.append(anomaly_trigger, 1)
+        else:
+            anomaly_trigger = np.append(anomaly_trigger, 0)
             
     
     counter = 0
@@ -214,4 +194,3 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         output.write(str(threshold_mining[counter]) + " " + date_array[counter] + " " + str(anomaly_trigger[counter]) + "\n")
         counter += 1
     output.close()
-

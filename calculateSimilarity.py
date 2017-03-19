@@ -21,12 +21,15 @@ def calculateSimilarity(representative_trajectory, new_trajectory, parameter_nj)
 #    tracks_counter = 0
 #    probability_array = []
     
-    
+    probability_array = np.empty([0])
 #    while tracks_counter < len(pivot_list) - 1:
 #        probability_array += [math.exp( (-parameter_nj[tracks_counter]) * chamfer_distance(new_trajectory,representative_trajectory[ pivot_list[tracks_counter]:pivot_list[tracks_counter+1] ]))]
-    probability = [np.exp( (-parameter_nj) * chamfer_distance(new_trajectory,representative_trajectory))]
-    
+        
+    for track in new_trajectory: 
+        track = track.as_matrix()
+        probability = [np.exp( (-parameter_nj) * chamfer_distance(track,representative_trajectory))]
+        probability_array = np.append(probability_array, probability)
 #        tracks_counter += 1
 #     print(parameter_nj)
-
+    print(probability_array)
     return probability
