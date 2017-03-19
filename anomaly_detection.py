@@ -150,7 +150,11 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     counter = 0
     threshold_mining = np.empty([0])
     anomaly_trigger = np.empty([0])
-    ### Choose representative file with most representative tracks  
+    ### Choose representative file with most representative tracks
+    # instead of choosing highest track count, we can concatenate
+    # all representative track
+    # concatenate is not a good idea imo, i should choose based on respective
+    # months
     highest_track_count = 0
     while counter < cycle_loop:
         filename_representative = "30_days_" + str(counter + 1) + "_loop_" + str(day_to_analyze) + ".txt"
@@ -161,31 +165,36 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         counter += 1        
     counter = 0
 
-       
-    filename_representative = "30_days_" + str(highest_track_count) + "_loop_" + str(day_to_analyze) + ".txt"
-    emptytracks = False
-    os.chdir(traj_dir)
-    try:
-        new_track = concatDay[['TrackID', 'X', 'Y']]
-    except:
-        emptytracks = True
-        counter += 1
-    if emptytracks == False:
-        os.chdir(root_dir)
-        representative_track, end2, lines_ori2 = ReadTraclusExport(filename_representative)               
-        cluster_line = LinesConstruct(new_track)
-        threshold_results = calculateSimilarity(representative_track, cluster_line, nj_param)        
-        counter += 1
-        print("threshold results")
-        print(threshold_results) 
-        threshold_mining = np.append(threshold_mining, threshold_results)
-        
-        if threshold_results[0] < trained_threshold:
-            anomaly_trigger = np.append(anomaly_trigger, 1)
-        else:
-            anomaly_trigger = np.append(anomaly_trigger, 0)
-            
     
+    emptytracks = False
+
+    # Select respective representative trajectory based on which-30-days
+    count = 1
+    periodic_count = number_of_days / 30 #periodic count is to select the file
+    while count <= periodic_count:
+        filename_representative = "30_days_" + str(count) + "_loop_" + str(day_to_analyze) + ".txt"    
+        os.chdir(traj_dir)
+        try:
+            new_track = concatDay[['TrackID', 'X', 'Y']]
+        except:
+            emptytracks = True
+        if emptytracks == False:
+            os.chdir(root_dir)
+            representative_track, end2, lines_ori2 = ReadTraclusExport(filename_representative)               
+            cluster_line = LinesConstruct(new_track)
+            threshold_results = calculateSimilarity(representative_track, cluster_line, nj_param)        
+            counter += 1
+            print("threshold results")
+            print(threshold_results) 
+            threshold_mining = np.append(threshold_mining, threshold_results)
+            
+            if threshold_results[0] < trained_threshold:
+                anomaly_trigger = np.append(anomaly_trigger, 1)
+            else:
+                anomaly_trigger = np.append(anomaly_trigger, 0)
+            
+        count += 1
+    # indicate whether that day is abnormal or normal
     counter = 0
     file = "threshold_mining_" + str(day_to_analyze) + ".txt"
     output = open(file, 'w')    
