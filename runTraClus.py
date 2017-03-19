@@ -17,22 +17,23 @@ def runTraClus(day_to_analyze, cycle_loop):
         filename_txt = filename + ".txt"
     #    print(filename_tra)
         output = filename + ".txt"
-    
+        print(cycle_days)
     	# move file to traclus src
         src = root + '\\' + filename_tra
         dst = dirpath + '\\' + filename_tra
-        shutil.move(src, dst)
 
-        
+        shutil.move(src, dst)  
         os.chdir(dirpath)
         print(os.getcwd())
-    	# call(["java", "boliu.Main", filename_tra, output, "29", "8"])
+        # call(["java", "boliu.Main", filename_tra, output, "29", "8"])
         call(["java", "boliu.Main", filename_tra, output])
-        
+
         src = dirpath + '\\' + filename_txt
         dst = root + '\\' + filename_txt
+
         shutil.move(src, dst) 
-        
+
+
         os.chdir(root)
         cycle_days += 1
 

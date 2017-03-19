@@ -64,13 +64,13 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
     currentDay = dayArray[0]
     pointerMonth = 0
     pointerDay = 0
-    daysToChoose = 30 #30 for original experiment
-    cycle_loop = 2
+    daysToChoose = 365 #30 for original experiment
+    cycle_loop = 8
     cycle_counter = 0
-    listDay = []
     num_days = 4 # this parameter sets total days to be considered
     n_parameter = 3 # this parameter sets how many previous training days
-    annotate_testdays = np.empty([0])    
+    annotate_testdays = np.empty([0]) 
+    list_day = np.empty([0])
     vid_num = '001_'
     
 #    day_to_analyze = 2 #0 - monday, 6 - sunday #can prompt for input later
@@ -81,6 +81,48 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
     
     #####################################################################################################    
     currentIndex = 1 # This variable is used to reindex every dataframe
+    
+    #################### create an array of dates with the respective day(eg: monday) ###################
+    n_param_counter = n_parameter
+    num_days_counter = 0   
+    counter = 0
+    file_existence_checker = 0
+    frames = pd.DataFrame()
+    while counter < daysToChoose:
+        os.chdir(traj_dir)
+        col_names = ['TrackID', 'FrameNo', 'X', 'Y']
+        stringDate = '001_' + str(currentYear) + str(currentMonth) + str(currentDay) + '.txt'           
+        date = str(currentYear) + str(currentMonth) + str(currentDay)
+        string_to_be_parsed = "pd.read_table('" + stringDate + "',delimiter=' ', header=None, names=col_names)"
+        datetime_convert = datetime.strptime(date, '%Y%m%d')
+        dayInWeek = datetime_convert.weekday()
+        try:             
+            exec("%s%d = %s" % ("day", counter, string_to_be_parsed))                       
+            tempString_Date = eval("%s%d" % ("day", counter))   
+            tempString_Date, currentIndex = trackID_reindex(tempString_Date, currentIndex)
+            if dayInWeek == day_to_analyze:
+                n_param_counter -= 1
+                
+                frames = frames.append(tempString_Date)
+                
+                num_days_counter += 1
+                list_day = np.append(list_day, stringDate)
+#                print(date)
+        except:
+            file_existence_checker += 1
+            counter -= 1
+            
+        # this code is to prevent this while loop from infinite looping
+        if file_existence_checker > 366:
+            counter = daysToChoose # just terminate the loop is ok ady.        
+        counter += 1
+    
+        currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)    
+    #####################################################################################################
+    print(list_day)
+    print("start tra")
+    os.chdir(root_dir)
+    ########################### Make up and create TRA File ##################    
     while cycle_counter < cycle_loop:   
         counter = 0
         num_days_counter = 0
@@ -233,7 +275,7 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
         
         
 
-    print(threshold_array) 
+#    print(threshold_array) 
     threshold_array = np.sort(threshold_array)
     threshold_array = np.percentile(threshold_array, 50)
     file = "threshold_array_" + str(day_to_analyze) + ".txt" 
