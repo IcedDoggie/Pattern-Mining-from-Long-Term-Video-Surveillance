@@ -7,18 +7,9 @@ Created on Sat Jan 21 15:02:07 2017
 
 import pandas as pd
 import numpy as np
-import cv2
-from sklearn.cluster import KMeans
-from pandas import Series, DataFrame, Panel
-import matplotlib.pyplot as plt
-import matplotlib.figure as fig
-import matplotlib.image as mpimg
-from matplotlib import collections as mc 
 import os
-import argparse
+import os.path
 import sys
-import subprocess
-import math
 from datetime import datetime
 from DirectionCalculation import calculateGradient, calculateVector
 from calendarFunction import calendarFunction
@@ -64,14 +55,14 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
     currentDay = dayArray[0]
     pointerMonth = 0
     pointerDay = 0
-    daysToChoose = 365 #30 for original experiment
+    daysToChoose = 60 #30 for original experiment
     cycle_loop = 8
     cycle_counter = 0
     num_days = 4 # this parameter sets total days to be considered
     n_parameter = 3 # this parameter sets how many previous training days
     annotate_testdays = np.empty([0]) 
     list_day = np.empty([0])
-    vid_num = '001_'
+    vid_num = '001'
     
 #    day_to_analyze = 2 #0 - monday, 6 - sunday #can prompt for input later
     allFrames = pd.DataFrame() #this is to get back the trajectory for calculating threshold
@@ -89,25 +80,19 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
     file_existence_checker = 0
     frames = pd.DataFrame()
     while counter < daysToChoose:
-        os.chdir(traj_dir)
-        col_names = ['TrackID', 'FrameNo', 'X', 'Y']
-        stringDate = '001_' + str(currentYear) + str(currentMonth) + str(currentDay) + '.txt'           
+        os.chdir(traj_dir)          
         date = str(currentYear) + str(currentMonth) + str(currentDay)
-        string_to_be_parsed = "pd.read_table('" + stringDate + "',delimiter=' ', header=None, names=col_names)"
+        stringDate = vid_num + "_" + str(currentYear) + str(currentMonth) + str(currentDay)
+        filename_for_test_existence = stringDate + ".txt"        
         datetime_convert = datetime.strptime(date, '%Y%m%d')
         dayInWeek = datetime_convert.weekday()
-        try:             
-            exec("%s%d = %s" % ("day", counter, string_to_be_parsed))                       
-            tempString_Date = eval("%s%d" % ("day", counter))   
-            tempString_Date, currentIndex = trackID_reindex(tempString_Date, currentIndex)
-            if dayInWeek == day_to_analyze:
-                n_param_counter -= 1
-                
-                frames = frames.append(tempString_Date)
-                
+        try:          
+            exist = os.path.isfile(filename_for_test_existence)
+            if dayInWeek == day_to_analyze and exist == True:
+                n_param_counter -= 1  
                 num_days_counter += 1
                 list_day = np.append(list_day, stringDate)
-#                print(date)
+                print(date)
         except:
             file_existence_checker += 1
             counter -= 1
@@ -120,78 +105,110 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
         currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)    
     #####################################################################################################
     print(list_day)
+    print(len(list_day))
     print("start tra")
-    os.chdir(root_dir)
+#    os.chdir(root_dir)
     ########################### Make up and create TRA File ##################    
-    while cycle_counter < cycle_loop:   
-        counter = 0
-        num_days_counter = 0
-        frames = pd.DataFrame()  
-        os.chdir(traj_dir)
-        col_names = ['TrackID', 'FrameNo', 'X', 'Y']
-        print(os.getcwd())
-        file_existence_checker = 0
-        n_param_counter = n_parameter
-        
-        ##### this chunk of code is for using monthly basis #####
-#        temp_month = currentMonth #this is to stop iteration when reaches next month
-        # months with 31 days
-#        if currentMonth == '01' or currentMonth == '03' or currentMonth == '05' or currentMonth == '07' or currentMonth == '08' or currentMonth == '10' or currentMonth == '12':
-#            daysToChoose = 31
-#            test_day_count = 4
+    counter_list_day = 0
+    days_in_partition = 0
+    frames = pd.DataFrame()
+    date_verifier = []
+    col_names = ['TrackID', 'FrameNo', 'X', 'Y']
+    while counter_list_day < ( len(list_day) ):   
+        if days_in_partition < n_parameter:
+            date_verifier += [counter_list_day]
+            filename = list_day[counter_list_day] + '.txt'
+            string_to_be_parsed = "pd.read_table('" + filename + "',delimiter=' ', header=None, names=col_names)"                    
+            exec("%s%d = %s" % ("day", counter_list_day, string_to_be_parsed))                 
+            tempString_Date = eval("%s%d" % ("day", counter_list_day))   
+            tempString_Date, currentIndex = trackID_reindex(tempString_Date, currentIndex)
+            frames = frames.append(tempString_Date)
+            days_in_partition += 1
+        elif days_in_partition == n_parameter and traFileCreation == True:
+            if len(frames) > 0:
+                concatDay = frames.sort_values(by='TrackID', ascending=True)
+                allFrames = allFrames.append(concatDay)
+                concatDay = concatDay.reset_index(drop=True)
+            filename = "test_day_" + str(counter_list_day) + "_" + str(day_to_analyze) + ".tra"
             
-#        else:
-#            daysToChoose = 30
-#            test_day_count = 3
-#        print("current: " + currentMonth)
-#        print("temp: " + temp_month)
-        ######################################################### 
-        
-        while n_param_counter >= 0 and num_days_counter < num_days:
-            stringDate = '001_' + str(currentYear) + str(currentMonth) + str(currentDay) + '.txt'           
-            date = str(currentYear) + str(currentMonth) + str(currentDay)
-            string_to_be_parsed = "pd.read_table('" + stringDate + "',delimiter=' ', header=None, names=col_names)"
-            datetime_convert = datetime.strptime(date, '%Y%m%d')
-            dayInWeek = datetime_convert.weekday()
-            try:
-                exec("%s%d = %s" % ("day", counter, string_to_be_parsed))
-                tempString_Date = eval("%s%d" % ("day", counter))   
-                tempString_Date, currentIndex = trackID_reindex(tempString_Date, currentIndex)
-                if dayInWeek == day_to_analyze and n_param_counter > 0:
-                    n_param_counter -= 1
-                    frames = frames.append(tempString_Date)
-                    num_days_counter += 1
-                    print(date)
-                elif dayInWeek == day_to_analyze and n_param_counter == 0:
-                    testdays = vid_num + date
-                    annotate_testdays = np.append(annotate_testdays, testdays)
-                    num_days_counter += 1
-            except:
-                file_existence_checker += 1
-                counter -= 1
-            
-            # this code is to prevent this while loop from infinite looping
-            if file_existence_checker > 366:
-                counter = daysToChoose
-                cycle_loop -= 1
-                
-            counter += 1
-    
-            currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)
-
-        if len(frames) > 0:
-            concatDay = frames.sort_values(by='TrackID', ascending=True)
-            allFrames = allFrames.append(concatDay)
-            concatDay = concatDay.reset_index(drop=True)
-        
-        os.chdir(root_dir)
-
-        cycle_counter += 1
-
-    #     ####################################File Preparation###########################################
-        if traFileCreation == True and len(frames) > 0:        
-            filename = "30_days_" + str(cycle_counter) + "_loop_" + str(day_to_analyze) + ".tra"
-            TraClusFileExporter(concatDay, filename)
+            os.chdir(root_dir)            
+            TraClusFileExporter(concatDay, filename)            
+            runTraClus(day_to_analyze, counter_list_day)            
+            days_in_partition = 0
+            frames = pd.DataFrame()
+            os.chdir(traj_dir)
+        else:
+            days_in_partition = 0            
+        counter_list_day += 1
+    print(date_verifier)
+#    while cycle_counter < cycle_loop:   
+#        counter = 0
+#        num_days_counter = 0
+#        frames = pd.DataFrame()  
+#        os.chdir(traj_dir)
+#        print(os.getcwd())
+#        file_existence_checker = 0
+#        n_param_counter = n_parameter
+#        
+#        ##### this chunk of code is for using monthly basis #####
+##        temp_month = currentMonth #this is to stop iteration when reaches next month
+#        # months with 31 days
+##        if currentMonth == '01' or currentMonth == '03' or currentMonth == '05' or currentMonth == '07' or currentMonth == '08' or currentMonth == '10' or currentMonth == '12':
+##            daysToChoose = 31
+##            test_day_count = 4
+#            
+##        else:
+##            daysToChoose = 30
+##            test_day_count = 3
+##        print("current: " + currentMonth)
+##        print("temp: " + temp_month)
+#        ######################################################### 
+#        
+#        while n_param_counter >= 0 and num_days_counter < num_days:
+#            stringDate = '001_' + str(currentYear) + str(currentMonth) + str(currentDay) + '.txt'           
+#            date = str(currentYear) + str(currentMonth) + str(currentDay)
+#            string_to_be_parsed = "pd.read_table('" + stringDate + "',delimiter=' ', header=None, names=col_names)"
+#            datetime_convert = datetime.strptime(date, '%Y%m%d')
+#            dayInWeek = datetime_convert.weekday()
+#            try:
+#                exec("%s%d = %s" % ("day", counter, string_to_be_parsed))
+#                tempString_Date = eval("%s%d" % ("day", counter))   
+#                tempString_Date, currentIndex = trackID_reindex(tempString_Date, currentIndex)
+#                if dayInWeek == day_to_analyze and n_param_counter > 0:
+#                    n_param_counter -= 1
+#                    frames = frames.append(tempString_Date)
+#                    num_days_counter += 1
+#                    print(date)
+#                elif dayInWeek == day_to_analyze and n_param_counter == 0:
+#                    testdays = vid_num + date
+#                    annotate_testdays = np.append(annotate_testdays, testdays)
+#                    num_days_counter += 1
+#            except:
+#                file_existence_checker += 1
+#                counter -= 1
+#            
+#            # this code is to prevent this while loop from infinite looping
+#            if file_existence_checker > 366:
+#                counter = daysToChoose
+#                cycle_loop -= 1
+#                
+#            counter += 1
+#    
+#            currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)
+#
+#        if len(frames) > 0:
+#            concatDay = frames.sort_values(by='TrackID', ascending=True)
+#            allFrames = allFrames.append(concatDay)
+#            concatDay = concatDay.reset_index(drop=True)
+#        
+#        os.chdir(root_dir)
+#
+#        cycle_counter += 1
+#
+#    #     ####################################File Preparation###########################################
+#        if traFileCreation == True and len(frames) > 0:        
+#            filename = "30_days_" + str(cycle_counter) + "_loop_" + str(day_to_analyze) + ".tra"
+#            TraClusFileExporter(concatDay, filename)
         ###############################################################################################
         
     ####################################Visualizing Multiple##########################################
@@ -201,10 +218,10 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
     inner_loop_count = 0
 
     #### runTraClus ####
-    if traFileCreation == True:
-        print(cycle_loop)
-        runTraClus(day_to_analyze, cycle_loop)
-    print(annotate_testdays) 
+#    if traFileCreation == True:
+#        print(cycle_loop)
+#        runTraClus(day_to_analyze, cycle_loop)
+#    print(annotate_testdays) 
     ####### clustering and prediction #######
     counter_new_day = 0
     nj_parameter_array = np.empty([0])
