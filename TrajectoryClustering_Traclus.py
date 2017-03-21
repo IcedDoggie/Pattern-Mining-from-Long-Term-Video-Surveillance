@@ -119,6 +119,7 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
     while counter_list_day < ( len(list_day) - n_parameter ):   
         while days_in_partition < n_parameter:
             filename = list_day[partition_num] + '.txt'
+            date_verifier += [filename]
             string_to_be_parsed = "pd.read_table('" + filename + "',delimiter=' ', header=None, names=col_names)"                    
             exec("%s%d = %s" % ("day", counter_list_day, string_to_be_parsed))                 
             tempString_Date = eval("%s%d" % ("day", counter_list_day))   
@@ -143,7 +144,7 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
         else:
             days_in_partition = 0            
         counter_list_day += 1
-    print(date_verifier)
+#    print(date_verifier) # verifying the dates trained sequentially
 
     ####################################Visualizing Multiple##########################################
 #    print(annotate_testdays)
@@ -157,10 +158,12 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
     threshold_array = np.empty([0])
     
     ## nj param
+    os.chdir(root_dir)
     counter_nj = 0
-    while counter_nj < cycle_loop:
-        filename = "30_days_" + str(counter_nj + 1) + "_loop_" + str(day_to_analyze) + ".txt"
-        image_filename = "30_days_" + str(counter_nj + 1) + "_loop_" + str(day_to_analyze) + ".jpg"
+    while counter_nj < ( len(list_day) - n_parameter ):
+        
+        filename = "test_day_" + str(counter_nj) + "_" + str(day_to_analyze) + '.txt'
+        image_filename = "test_day_" + str(counter_nj) + "_" + str(day_to_analyze) + '.jpg'
          
         # 3-> Thursday
         major_track, end, lines_ori = ReadTraclusExport(filename)
@@ -192,9 +195,9 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
     # array for second level clustering
     array_second_representative = np.empty([0])
     # threshold calculation
-    while counter_new_day < cycle_loop:
+    while counter_new_day < ( len(list_day) - n_parameter ):
 #        filename = "Day_6_" + str(counter_new_day) + ".txt"
-        filename = "30_days_" + str(counter_new_day + 1) + "_loop_" + str(day_to_analyze) + ".txt"
+        filename = "test_day_" + str(counter_new_day) + "_" + str(day_to_analyze) + '.txt'
 #        filename = "All_days_" + str(day_to_analyze) + ".txt"        
         # 3-> Thursday
         major_track, end, lines_ori = ReadTraclusExport(filename)
