@@ -113,27 +113,30 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
     days_in_partition = 0
     frames = pd.DataFrame()
     date_verifier = []
+    partition_num = 0
+    start_partition = 0 # just a initial value helping partition num
     col_names = ['TrackID', 'FrameNo', 'X', 'Y']
-    while counter_list_day < ( len(list_day) ):   
-        if days_in_partition < n_parameter:
-            date_verifier += [counter_list_day]
-            filename = list_day[counter_list_day] + '.txt'
+    while counter_list_day < ( len(list_day) - n_parameter ):   
+        while days_in_partition < n_parameter:
+            filename = list_day[partition_num] + '.txt'
             string_to_be_parsed = "pd.read_table('" + filename + "',delimiter=' ', header=None, names=col_names)"                    
             exec("%s%d = %s" % ("day", counter_list_day, string_to_be_parsed))                 
             tempString_Date = eval("%s%d" % ("day", counter_list_day))   
             tempString_Date, currentIndex = trackID_reindex(tempString_Date, currentIndex)
             frames = frames.append(tempString_Date)
+            partition_num += 1
             days_in_partition += 1
-        elif days_in_partition == n_parameter and traFileCreation == True:
+        if days_in_partition == n_parameter and traFileCreation == True:
             if len(frames) > 0:
                 concatDay = frames.sort_values(by='TrackID', ascending=True)
                 allFrames = allFrames.append(concatDay)
                 concatDay = concatDay.reset_index(drop=True)
             filename = "test_day_" + str(counter_list_day) + "_" + str(day_to_analyze) + ".tra"
-            
             os.chdir(root_dir)            
             TraClusFileExporter(concatDay, filename)            
-            runTraClus(day_to_analyze, counter_list_day)            
+            runTraClus(day_to_analyze, counter_list_day)   
+            start_partition += 1
+            partition_num = start_partition
             days_in_partition = 0
             frames = pd.DataFrame()
             os.chdir(traj_dir)
