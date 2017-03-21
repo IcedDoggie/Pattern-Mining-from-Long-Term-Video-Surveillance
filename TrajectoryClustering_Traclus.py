@@ -144,88 +144,14 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
             days_in_partition = 0            
         counter_list_day += 1
     print(date_verifier)
-#    while cycle_counter < cycle_loop:   
-#        counter = 0
-#        num_days_counter = 0
-#        frames = pd.DataFrame()  
-#        os.chdir(traj_dir)
-#        print(os.getcwd())
-#        file_existence_checker = 0
-#        n_param_counter = n_parameter
-#        
-#        ##### this chunk of code is for using monthly basis #####
-##        temp_month = currentMonth #this is to stop iteration when reaches next month
-#        # months with 31 days
-##        if currentMonth == '01' or currentMonth == '03' or currentMonth == '05' or currentMonth == '07' or currentMonth == '08' or currentMonth == '10' or currentMonth == '12':
-##            daysToChoose = 31
-##            test_day_count = 4
-#            
-##        else:
-##            daysToChoose = 30
-##            test_day_count = 3
-##        print("current: " + currentMonth)
-##        print("temp: " + temp_month)
-#        ######################################################### 
-#        
-#        while n_param_counter >= 0 and num_days_counter < num_days:
-#            stringDate = '001_' + str(currentYear) + str(currentMonth) + str(currentDay) + '.txt'           
-#            date = str(currentYear) + str(currentMonth) + str(currentDay)
-#            string_to_be_parsed = "pd.read_table('" + stringDate + "',delimiter=' ', header=None, names=col_names)"
-#            datetime_convert = datetime.strptime(date, '%Y%m%d')
-#            dayInWeek = datetime_convert.weekday()
-#            try:
-#                exec("%s%d = %s" % ("day", counter, string_to_be_parsed))
-#                tempString_Date = eval("%s%d" % ("day", counter))   
-#                tempString_Date, currentIndex = trackID_reindex(tempString_Date, currentIndex)
-#                if dayInWeek == day_to_analyze and n_param_counter > 0:
-#                    n_param_counter -= 1
-#                    frames = frames.append(tempString_Date)
-#                    num_days_counter += 1
-#                    print(date)
-#                elif dayInWeek == day_to_analyze and n_param_counter == 0:
-#                    testdays = vid_num + date
-#                    annotate_testdays = np.append(annotate_testdays, testdays)
-#                    num_days_counter += 1
-#            except:
-#                file_existence_checker += 1
-#                counter -= 1
-#            
-#            # this code is to prevent this while loop from infinite looping
-#            if file_existence_checker > 366:
-#                counter = daysToChoose
-#                cycle_loop -= 1
-#                
-#            counter += 1
-#    
-#            currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)
-#
-#        if len(frames) > 0:
-#            concatDay = frames.sort_values(by='TrackID', ascending=True)
-#            allFrames = allFrames.append(concatDay)
-#            concatDay = concatDay.reset_index(drop=True)
-#        
-#        os.chdir(root_dir)
-#
-#        cycle_counter += 1
-#
-#    #     ####################################File Preparation###########################################
-#        if traFileCreation == True and len(frames) > 0:        
-#            filename = "30_days_" + str(cycle_counter) + "_loop_" + str(day_to_analyze) + ".tra"
-#            TraClusFileExporter(concatDay, filename)
-        ###############################################################################################
-        
+
     ####################################Visualizing Multiple##########################################
 #    print(annotate_testdays)
     visualize_num = 5
     visualize_count = 0
     inner_loop_count = 0
 
-    #### runTraClus ####
-#    if traFileCreation == True:
-#        print(cycle_loop)
-#        runTraClus(day_to_analyze, cycle_loop)
-#    print(annotate_testdays) 
-    ####### clustering and prediction #######
+
     counter_new_day = 0
     nj_parameter_array = np.empty([0])
     threshold_array = np.empty([0])
