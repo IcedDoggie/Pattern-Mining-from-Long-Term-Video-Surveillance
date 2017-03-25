@@ -55,7 +55,7 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
     currentDay = dayArray[0]
     pointerMonth = 0
     pointerDay = 0
-    daysToChoose = 60 #30 for original experiment
+    daysToChoose = 365 #30 for original experiment
     cycle_loop = 8
     cycle_counter = 0
     num_days = 4 # this parameter sets total days to be considered
@@ -92,7 +92,8 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
                 n_param_counter -= 1  
                 num_days_counter += 1
                 list_day = np.append(list_day, stringDate)
-                print(date)
+#                print(date)
+
         except:
             file_existence_checker += 1
             counter -= 1
@@ -104,9 +105,9 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
     
         currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)    
     #####################################################################################################
-    print(list_day)
-    print(len(list_day))
-    print("start tra")
+#    print(list_day)
+#    print(len(list_day))
+#    print("start tra")
 #    os.chdir(root_dir)
     ########################### Make up and create TRA File ##################    
     counter_list_day = 0
@@ -128,6 +129,7 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
             partition_num += 1
             days_in_partition += 1
         if days_in_partition == n_parameter and traFileCreation == True:
+            annotate_testdays = np.append(annotate_testdays, list_day[partition_num])
             if len(frames) > 0:
                 concatDay = frames.sort_values(by='TrackID', ascending=True)
                 allFrames = allFrames.append(concatDay)
@@ -173,8 +175,9 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
         temp_threshold_array = np.empty([0])
         
 #        cluster = TrajectoryID_Extraction(temp_major_track, temp_major_track, end, lines_ori)
-            
+
         colors_for_lines = ColorAssignment(temp_major_track)
+        
         cluster_line = LinesConstruct(temp_major_track)
         Visualizer(cluster_line, colors_for_lines, image_filename, root_dir, img_dir)     
         
@@ -235,6 +238,18 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
     file = "nj_param_" + str(day_to_analyze) + ".txt"
     output = open(file, 'w') 
     output.write(str(nj_param))
+    output.close()
+    
+    
+    file = "test_days_list_" + str(day_to_analyze) +".txt"
+    if os.path.isfile(file) == False:
+        output = open(file, 'w')
+    else:
+        output = open(file, 'a')
+    print(annotate_testdays)
+    for days in annotate_testdays:
+        print(str(days))        
+        output.write(str(days) + "\n")
 #    print("threshold array")
 #    print(threshold_array)
     ############################################################################################################
@@ -266,14 +281,14 @@ def TrajectoryClustering_Traclus(traFileCreation, day_to_analyze, year_to_analyz
 #        anomaly_detection(export_file, day_in_week, num_days, year, root_dir, data_dir, image_dir)
 #except:
 #    print("Invalid Input. Make sure it's TrajectoryClustering_Traclus.py [bool(True|False)] [int(0~6)]")
-TrajectoryClustering_Traclus(True, 0, 2012, 'E:\Documents\MMU Studies\Python Scripts', 'E:\Documents\MMU Studies\Python Scripts\Track LOST dataset', "E:\Documents\MMU Studies\Python Scripts\Trajectories")
+#TrajectoryClustering_Traclus(True, 0, 2012, 'E:\Documents\MMU Studies\Python Scripts', 'E:\Documents\MMU Studies\Python Scripts\Track LOST dataset', "E:\Documents\MMU Studies\Python Scripts\Trajectories")
 #TrajectoryClustering_Traclus(True, 1, 2012, 'E:\Documents\MMU Studies\Python Scripts', 'E:\Documents\MMU Studies\Python Scripts\Track LOST dataset', "E:\Documents\MMU Studies\Python Scripts\Trajectories")
 #TrajectoryClustering_Traclus(True, 2, 2012, 'E:\Documents\MMU Studies\Python Scripts', 'E:\Documents\MMU Studies\Python Scripts\Track LOST dataset', "E:\Documents\MMU Studies\Python Scripts\Trajectories")
 #TrajectoryClustering_Traclus(True, 3, 2012, 'E:\Documents\MMU Studies\Python Scripts', 'E:\Documents\MMU Studies\Python Scripts\Track LOST dataset', "E:\Documents\MMU Studies\Python Scripts\Trajectories")
 #TrajectoryClustering_Traclus(True, 4, 2012, 'E:\Documents\MMU Studies\Python Scripts', 'E:\Documents\MMU Studies\Python Scripts\Track LOST dataset', "E:\Documents\MMU Studies\Python Scripts\Trajectories")
 #TrajectoryClustering_Traclus(True, 5, 2012, 'E:\Documents\MMU Studies\Python Scripts', 'E:\Documents\MMU Studies\Python Scripts\Track LOST dataset', "E:\Documents\MMU Studies\Python Scripts\Trajectories")
 #TrajectoryClustering_Traclus(True, 6, 2012, 'E:\Documents\MMU Studies\Python Scripts', 'E:\Documents\MMU Studies\Python Scripts\Track LOST dataset', "E:\Documents\MMU Studies\Python Scripts\Trajectories")
-#anomaly_detection(True, 0, 60, 2012, 'E:\Documents\MMU Studies\Python Scripts', 'E:\Documents\MMU Studies\Python Scripts\Track LOST dataset', "E:\Documents\MMU Studies\Python Scripts\Trajectories")
+anomaly_detection(True, 0, 60, 2012, 'E:\Documents\MMU Studies\Python Scripts', 'E:\Documents\MMU Studies\Python Scripts\Track LOST dataset', "E:\Documents\MMU Studies\Python Scripts\Trajectories")
 
 
 #TrajectoryClustering_Traclus(True, 0, 2012)

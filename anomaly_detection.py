@@ -8,18 +8,8 @@ Created on Mon Jan 30 12:34:58 2017
 
 import pandas as pd
 import numpy as np
-import cv2
-from sklearn.cluster import KMeans
-from pandas import Series, DataFrame, Panel
-import matplotlib.pyplot as plt
-import matplotlib.figure as fig
-import matplotlib.image as mpimg
-from matplotlib import collections as mc 
 import os
-import argparse
 import sys
-import subprocess
-import math
 from datetime import datetime
 from DirectionCalculation import calculateGradient, calculateVector
 from calendarFunction import calendarFunction
@@ -66,134 +56,86 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     currentDay = dayArray[0]
     pointerMonth = 0
     pointerDay = 0
-    daysToChoose = number_of_days #30 for original experiment
-    cycle_loop = 8
-    cycle_counter = 0
-    listDay = []
-    
-    # analyzing based on day of each week
-    mondayList = []
-    tuesdayList = []
-    wednesdayList = []
-    thursdayList = []
-    fridayList = []
-    saturdayList = []
-    sundayList = []
-    counter_listDay = 0
-#    day_to_analyze = 1 #0 - monday, 6 - sunday #can prompt for input later
-    allFrames = pd.DataFrame() #this is to get back the trajectory for calculating threshold
-    
+    daysToChoose = 60 #30 for original experiment
+
     # probability calculation
     threshold = np.empty([0])
     
     #####################################################################################################    
+    ######### parameters for mon., tues, ..etc. #######    
     threshold_filename = "threshold_array_" + str(day_to_analyze) + ".txt"    
     output = open(threshold_filename)
     trained_threshold = output.read()
     trained_threshold = float(trained_threshold)
-#    print(trained_threshold)
     output.close()    
-    
-#    trained_threshold = trained_threshold.as_matrix()    
+      
     nj_param_file = "nj_param_" + str(day_to_analyze) + ".txt"        
     output = open(nj_param_file)
     nj_param = output.read()
     output.close()        
-    
     date_array = np.empty([0])
     nj_param = float(nj_param)
 
     counter = 0
     
-    
     col_names = ['TrackID', 'FrameNo', 'X', 'Y']
     print(os.getcwd())
     counter_file = 0
     currentIndex = 1
+    n_parameter = 3 # this parameter sets how many previous training days
+    annotate_testdays = np.empty([0]) 
+    vid_num = '001'
+    list_day = np.empty([0])
+    #################### create an array of dates with the respective day(eg: monday) ###################
+    n_param_counter = n_parameter
+    num_days_counter = 0   
+    counter = 0
+    file_existence_checker = 0
+    frames = pd.DataFrame()
     while counter < daysToChoose:
-        currentIndex = 1 # This variable is used to reindex every dataframe
-        frames = pd.DataFrame()  
-        os.chdir(traj_dir)
-        stringDate = '001_' + str(currentYear) + str(currentMonth) + str(currentDay) + '.txt' 
+        os.chdir(traj_dir)          
         date = str(currentYear) + str(currentMonth) + str(currentDay)
-        string_to_be_parsed = "pd.read_table('" + stringDate + "',delimiter=' ', header=None, names=col_names)"     
+        stringDate = vid_num + "_" + str(currentYear) + str(currentMonth) + str(currentDay)
+        filename_for_test_existence = stringDate + ".txt"        
         datetime_convert = datetime.strptime(date, '%Y%m%d')
         dayInWeek = datetime_convert.weekday()
-        try:
-            exec("%s%d = %s" % ("day", counter, string_to_be_parsed))
-            tempString_Date = eval("%s%d" % ("day", counter)) 
-            tempString_Date, currentIndex = trackID_reindex(tempString_Date, currentIndex)
-            if dayInWeek == day_to_analyze:
-                frames = frames.append(tempString_Date)
-                date_array = np.append(date_array, str(date))
-                print(str(date))
+        try:          
+            exist = os.path.isfile(filename_for_test_existence)
+            if dayInWeek == day_to_analyze and exist == True:
+                n_param_counter -= 1  
+                num_days_counter += 1
+                list_day = np.append(list_day, stringDate)
+                print(date)
         except:
+            file_existence_checker += 1
             counter -= 1
             
+        # this code is to prevent this while loop from infinite looping
+        if file_existence_checker > 366:
+            counter = daysToChoose # just terminate the loop is ok ady.        
         counter += 1
+    
+        currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)    
+    
+    print(list_day)    
+    
+    ########################## load the test dates ###############################
+    os.chdir(root_dir)    
+    filename = "test_days_list_" + str(day_to_analyze) + ".txt"    
+    output = open(filename, 'r')
+    test_dates = output.read()
+    output.close()    
+    print(test_dates)
 
-        currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)
-    #     #######################################################################################
-        os.chdir(root_dir)        
-        if len(frames) > 0:        
-            concatDay = frames.sort_values(by='TrackID', ascending=True)
-            allFrames = allFrames.append(concatDay)
-            concatDay = concatDay.reset_index(drop=True)
-            if traFileCreation == True and dayInWeek == day_to_analyze:    
-                counter_file += 1
+    ## filter test dates that are in range of daysToChoose
+        
     
-    
- 
-    
-    ##################################
+    ##############################################################################
     
     counter = 0
     threshold_mining = np.empty([0])
     anomaly_trigger = np.empty([0])
-    ### Choose representative file with most representative tracks
-    # instead of choosing highest track count, we can concatenate
-    # all representative track
-    # concatenate is not a good idea imo, i should choose based on respective
-    # months
-    highest_track_count = 0
-    while counter < cycle_loop:
-        filename_representative = "30_days_" + str(counter + 1) + "_loop_" + str(day_to_analyze) + ".txt"
-        representative_track_temp, end2, lines_ori2 = ReadTraclusExport(filename_representative)        
-        representative_track_temp = LinesConstruct(representative_track_temp)
-        if len(representative_track_temp) > highest_track_count:
-            highest_track_count = counter + 1
-        counter += 1        
-    counter = 0
 
-    
-    emptytracks = False
-
-    # Select respective representative trajectory based on which-30-days
-    count = 1
-    periodic_count = number_of_days / 30 #periodic count is to select the file
-    while count <= periodic_count:
-        filename_representative = "30_days_" + str(count) + "_loop_" + str(day_to_analyze) + ".txt"    
-        os.chdir(traj_dir)
-        try:
-            new_track = concatDay[['TrackID', 'X', 'Y']]
-        except:
-            emptytracks = True
-        if emptytracks == False:
-            os.chdir(root_dir)
-            representative_track, end2, lines_ori2 = ReadTraclusExport(filename_representative)               
-            cluster_line = LinesConstruct(new_track)
-            threshold_results = calculateSimilarity(representative_track, cluster_line, nj_param)        
-            counter += 1
-            print("threshold results")
-            print(threshold_results) 
-            threshold_mining = np.append(threshold_mining, threshold_results)
-            
-            if threshold_results[0] < trained_threshold:
-                anomaly_trigger = np.append(anomaly_trigger, 1)
-            else:
-                anomaly_trigger = np.append(anomaly_trigger, 0)
-            
-        count += 1
     # indicate whether that day is abnormal or normal
     counter = 0
     file = "threshold_mining_" + str(day_to_analyze) + ".txt"
