@@ -142,24 +142,27 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     
     while counter < len(selected_test_dates):
         os.chdir(root_dir)
-        partition_num = 0
+        partition_num = partition_starts
         n_param_frames = pd.DataFrame()      
         filename = "test_day_" + str(counter) + "_" + str(day_to_analyze) + ".txt" 
         representative_traj, end, lines_ori = ReadTraclusExport(filename)
         representative_traj = representative_traj[['X', 'Y']]
         representative_traj = representative_traj.as_matrix()        
-        print(representative_traj)
+#        print(representative_traj)
+        print(filename)
         
         # reading each day track
         os.chdir(traj_dir)
         counter_n_parameter = 0    
         while counter_n_parameter < n_parameter:
-            filename = list_day[partition_starts] + ".txt"
+            filename = list_day[partition_num] + ".txt"
             n_param_frames = n_param_frames.append( pd.read_table(filename, delimiter = " ", header=None, names=col_names) )
             counter_n_parameter += 1
+            partition_num += 1
+            print(filename)
         counter += 1       
-        print(n_param_frames)
-
+#        print(n_param_frames)
+        partition_starts += 1
     #####################################################
     counter = 0
     threshold_mining = np.empty([0])
