@@ -118,18 +118,23 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)    
     
     print(list_day)    
-    
+    test_dates_array = np.empty([0])
     ########################## load the test dates ###############################
     os.chdir(root_dir)    
     filename = "test_days_list_" + str(day_to_analyze) + ".txt"    
     output = open(filename, 'r')
-    test_dates = output.read()
-    output.close()    
+    test_dates = output.read().split('\n')
+    output.close()
+    test_dates = test_dates[0:len(test_dates)-1] # remove the last empty row   
     print(test_dates)
-
-    ## filter test dates that are in range of daysToChoose
-        
+    print((test_dates[0]))
     
+    ## filter test dates that are in range of daysToChoose
+    selected_test_dates = np.empty([0])
+    for dates in test_dates:
+        if dates <= list_day[len(list_day)-1]:
+            selected_test_dates = np.append(selected_test_dates, dates)
+    print(selected_test_dates)
     ##############################################################################
     
     counter = 0
