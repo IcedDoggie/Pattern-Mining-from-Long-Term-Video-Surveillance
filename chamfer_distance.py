@@ -11,7 +11,7 @@ import pandas as pd
 def chamfer_distance(track_p, track_q):
     # track q -> examplar/representative track
     first_term = ( 1 / abs(len(track_p)) )
-    
+#    print(track_q.loc[0])
     # find how many representative track in track_q and pivot it
     track_q, pivot_list = trajectory_pivoting_based_on_id(track_q)
     # pivot list is where how many places and where should we pivot,

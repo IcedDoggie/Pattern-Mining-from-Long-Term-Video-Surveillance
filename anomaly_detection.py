@@ -139,30 +139,27 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     counter = 0
     # reading the representative trajectories
     partition_starts = 0    
-    
+    number_of_anomalous_track = 0
+    probability_array = np.empty([0])
     while counter < len(selected_test_dates):
-        os.chdir(root_dir)
-        partition_num = partition_starts
-        n_param_frames = pd.DataFrame()      
+        os.chdir(root_dir)     
         filename = "test_day_" + str(counter) + "_" + str(day_to_analyze) + ".txt" 
         representative_traj, end, lines_ori = ReadTraclusExport(filename)
-        representative_traj = representative_traj[['X', 'Y']]
-        representative_traj = representative_traj.as_matrix()        
-#        print(representative_traj)
-        print(filename)
+        representative_traj = representative_traj[['TrackID', 'X', 'Y']]
         
-        # reading each day track
+        # reading test day track
         os.chdir(traj_dir)
-        counter_n_parameter = 0    
-        while counter_n_parameter < n_parameter:
-            filename = list_day[partition_num] + ".txt"
-            n_param_frames = n_param_frames.append( pd.read_table(filename, delimiter = " ", header=None, names=col_names) )
-            counter_n_parameter += 1
-            partition_num += 1
-            print(filename)
-        counter += 1       
-#        print(n_param_frames)
-        partition_starts += 1
+        counter_n_parameter = 0  
+        currentIndex = 1
+        filename = selected_test_dates[counter] + ".txt"
+        test_day = pd.read_table(filename, delimiter =' ', header=None, names=col_names)
+        test_day = test_day[['TrackID', 'X', 'Y']]
+            
+        probability_array = calculateSimilarity(representative_traj, test_day, nj_param)
+#        probability_array = np.append(probability_array, probability)
+        counter += 1
+    print(probability_array)
+    
     #####################################################
     counter = 0
     threshold_mining = np.empty([0])
