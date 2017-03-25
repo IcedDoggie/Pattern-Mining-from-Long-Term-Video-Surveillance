@@ -75,7 +75,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     output.close()        
     date_array = np.empty([0])
     nj_param = float(nj_param)
-
+    ####################################################
     counter = 0
     
     col_names = ['TrackID', 'FrameNo', 'X', 'Y']
@@ -83,7 +83,6 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     counter_file = 0
     currentIndex = 1
     n_parameter = 3 # this parameter sets how many previous training days
-    annotate_testdays = np.empty([0]) 
     vid_num = '001'
     list_day = np.empty([0])
     #################### create an array of dates with the respective day(eg: monday) ###################
@@ -91,7 +90,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     num_days_counter = 0   
     counter = 0
     file_existence_checker = 0
-    frames = pd.DataFrame()
+    
     while counter < daysToChoose:
         os.chdir(traj_dir)          
         date = str(currentYear) + str(currentMonth) + str(currentDay)
@@ -126,10 +125,9 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     test_dates = output.read().split('\n')
     output.close()
     test_dates = test_dates[0:len(test_dates)-1] # remove the last empty row   
-    print(test_dates)
-    print((test_dates[0]))
+
     
-    ## filter test dates that are in range of daysToChoose
+    ######## filter test dates that are in range of daysToChoose ########
     selected_test_dates = np.empty([0])
     for dates in test_dates:
         if dates <= list_day[len(list_day)-1]:
@@ -137,6 +135,32 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     print(selected_test_dates)
     ##############################################################################
     
+    ######## calculate probability and distances ########
+    counter = 0
+    # reading the representative trajectories
+    partition_starts = 0    
+    
+    while counter < len(selected_test_dates):
+        os.chdir(root_dir)
+        partition_num = 0
+        n_param_frames = pd.DataFrame()      
+        filename = "test_day_" + str(counter) + "_" + str(day_to_analyze) + ".txt" 
+        representative_traj, end, lines_ori = ReadTraclusExport(filename)
+        representative_traj = representative_traj[['X', 'Y']]
+        representative_traj = representative_traj.as_matrix()        
+        print(representative_traj)
+        
+        # reading each day track
+        os.chdir(traj_dir)
+        counter_n_parameter = 0    
+        while counter_n_parameter < n_parameter:
+            filename = list_day[partition_starts] + ".txt"
+            n_param_frames = n_param_frames.append( pd.read_table(filename, delimiter = " ", header=None, names=col_names) )
+            counter_n_parameter += 1
+        counter += 1       
+        print(n_param_frames)
+
+    #####################################################
     counter = 0
     threshold_mining = np.empty([0])
     anomaly_trigger = np.empty([0])
