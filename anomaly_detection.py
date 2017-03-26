@@ -11,6 +11,7 @@ import numpy as np
 import os
 import sys
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from datetime import datetime
 from DirectionCalculation import calculateGradient, calculateVector
 from calendarFunction import calendarFunction
@@ -57,13 +58,14 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     currentDay = dayArray[0]
     pointerMonth = 0
     pointerDay = 0
-    daysToChoose = 60 #30 for original experiment
+    daysToChoose = 365 #30 for original experiment
 
     # probability calculation
     threshold = np.empty([0])
     
     #####################################################################################################    
-    ######### parameters for mon., tues, ..etc. #######    
+    ######### parameters for mon., tues, ..etc. #######   
+    os.chdir(root_dir)
     threshold_filename = "threshold_array_" + str(day_to_analyze) + ".txt"    
     output = open(threshold_filename)
     trained_threshold = np.empty([0])
@@ -173,8 +175,43 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         probability, number_of_anomalous_track = calculateSimilarity(representative_traj, test_day, nj_param[counter], trained_threshold[counter], number_of_anomalous_track)
         probability_array = np.append(probability_array, probability)
         anomalous = np.append(anomalous, number_of_anomalous_track)
+        
+        
+        os.chdir(root_dir)
+        filename = "anomalous_" + str(day_to_analyze) + ".txt"
+        if os.path.isfile(filename) == False:
+            output = open(filename, 'w')
+        else:
+            output = open(filename, 'a')
+        output.write(selected_test_dates[counter] + " " + str(number_of_anomalous_track) + "\n")
         counter += 1
+        output.close()
     print(probability_array)
     print(anomalous)
-    #####################################################
+    
+    
+    
+    
+    ################### plotting anomalous track #######
+    os.chdir(img_dir)
+    counter = 0
+    dummy_array = np.empty([0])
+    while counter < len(selected_test_dates):
+        dummy_array = np.append(dummy_array, counter)        
+        counter += 1
+    figure_name = "Figure_" + str(day_to_analyze) + ".jpg"
+    fig = plt.figure(figsize=(20,20))
+    ax = fig.add_subplot(111)
+    plt.xticks(dummy_array, selected_test_dates)
+    ax.plot(dummy_array, anomalous)
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(1.5))
+    plt.xlabel("Test Dates")
+    plt.ylabel("Number of Anomalies")
+#    fig, ax = plt.plot(dummy_array, anomalous)
+
+    plt.savefig(figure_name)
+    plt.show()
+    
+    ###################
+    ##################################
     counter = 0
