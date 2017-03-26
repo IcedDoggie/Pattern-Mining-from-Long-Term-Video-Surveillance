@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import os
 import sys
+import matplotlib.pyplot as plt
 from datetime import datetime
 from DirectionCalculation import calculateGradient, calculateVector
 from calendarFunction import calendarFunction
@@ -177,17 +178,3 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     print(anomalous)
     #####################################################
     counter = 0
-    threshold_mining = np.empty([0])
-    anomaly_trigger = np.empty([0])
-
-    ################ indicate whether that day is abnormal or normal ################
-#    counter = 0
-#    os.chdir(root_dir)
-#    file = "threshold_mining_" + str(day_to_analyze) + ".txt"
-#    output = open(file, 'w')    
-#    while counter < len(threshold_mining):
-#        anomaly_trigger[counter] = int(anomaly_trigger[counter])
-#        output.write(str(threshold_mining[counter]) + " " + date_array[counter] + " " + str(anomaly_trigger[counter]) + "\n")
-#        counter += 1
-#    output.close()
-    #################################################################################
