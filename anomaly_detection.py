@@ -84,6 +84,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     output.close()        
     print(nj_param)
     
+    
     date_array = np.empty([0])
     
     ####################################################
@@ -150,9 +151,11 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     counter = 0
     # reading the representative trajectories
     partition_starts = 0    
-    number_of_anomalous_track = 0
+    
     probability_array = np.empty([0])
+    anomalous = np.empty([0])
     while counter < len(selected_test_dates):
+        number_of_anomalous_track = 0
         os.chdir(root_dir)     
         filename = "test_day_" + str(counter) + "_" + str(day_to_analyze) + ".txt" 
         representative_traj, end, lines_ori = ReadTraclusExport(filename)
@@ -165,25 +168,26 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         filename = selected_test_dates[counter] + ".txt"
         test_day = pd.read_table(filename, delimiter =' ', header=None, names=col_names)
         test_day = test_day[['TrackID', 'X', 'Y']]
-            
-        probability = calculateSimilarity(representative_traj, test_day, nj_param[counter])
+
+        probability, number_of_anomalous_track = calculateSimilarity(representative_traj, test_day, nj_param[counter], trained_threshold[counter], number_of_anomalous_track)
         probability_array = np.append(probability_array, probability)
+        anomalous = np.append(anomalous, number_of_anomalous_track)
         counter += 1
     print(probability_array)
-    
+    print(anomalous)
     #####################################################
     counter = 0
     threshold_mining = np.empty([0])
     anomaly_trigger = np.empty([0])
 
     ################ indicate whether that day is abnormal or normal ################
-    counter = 0
-    os.chdir(root_dir)
-    file = "threshold_mining_" + str(day_to_analyze) + ".txt"
-    output = open(file, 'w')    
-    while counter < len(threshold_mining):
-        anomaly_trigger[counter] = int(anomaly_trigger[counter])
-        output.write(str(threshold_mining[counter]) + " " + date_array[counter] + " " + str(anomaly_trigger[counter]) + "\n")
-        counter += 1
-    output.close()
+#    counter = 0
+#    os.chdir(root_dir)
+#    file = "threshold_mining_" + str(day_to_analyze) + ".txt"
+#    output = open(file, 'w')    
+#    while counter < len(threshold_mining):
+#        anomaly_trigger[counter] = int(anomaly_trigger[counter])
+#        output.write(str(threshold_mining[counter]) + " " + date_array[counter] + " " + str(anomaly_trigger[counter]) + "\n")
+#        counter += 1
+#    output.close()
     #################################################################################
