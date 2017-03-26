@@ -65,16 +65,27 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     ######### parameters for mon., tues, ..etc. #######    
     threshold_filename = "threshold_array_" + str(day_to_analyze) + ".txt"    
     output = open(threshold_filename)
-    trained_threshold = output.read()
-    trained_threshold = float(trained_threshold)
+    trained_threshold = np.empty([0])
+    trained_threshold_temp = output.read().split('\n')
+#    trained_threshold = float(trained_threshold)
+    trained_threshold_temp = trained_threshold_temp[0:len(trained_threshold_temp)-1] # remove the last empty row      
+    for threshold in trained_threshold_temp:
+        trained_threshold = np.append(trained_threshold, float(threshold))
     output.close()    
+    print(trained_threshold)
       
     nj_param_file = "nj_param_" + str(day_to_analyze) + ".txt"        
     output = open(nj_param_file)
-    nj_param = output.read()
+    nj_param = np.empty([0])
+    nj_param_temp = output.read().split('\n')
+    nj_param_temp = nj_param_temp[0:len(nj_param_temp)-1] # remove the last empty row          
+    for param in nj_param_temp:
+        nj_param = np.append(nj_param, float(param))
     output.close()        
+    print(nj_param)
+    
     date_array = np.empty([0])
-    nj_param = float(nj_param)
+    
     ####################################################
     counter = 0
     
@@ -155,8 +166,8 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         test_day = pd.read_table(filename, delimiter =' ', header=None, names=col_names)
         test_day = test_day[['TrackID', 'X', 'Y']]
             
-        probability_array = calculateSimilarity(representative_traj, test_day, nj_param)
-#        probability_array = np.append(probability_array, probability)
+        probability = calculateSimilarity(representative_traj, test_day, nj_param[counter])
+        probability_array = np.append(probability_array, probability)
         counter += 1
     print(probability_array)
     
@@ -165,8 +176,9 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     threshold_mining = np.empty([0])
     anomaly_trigger = np.empty([0])
 
-    # indicate whether that day is abnormal or normal
+    ################ indicate whether that day is abnormal or normal ################
     counter = 0
+    os.chdir(root_dir)
     file = "threshold_mining_" + str(day_to_analyze) + ".txt"
     output = open(file, 'w')    
     while counter < len(threshold_mining):
@@ -174,3 +186,4 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         output.write(str(threshold_mining[counter]) + " " + date_array[counter] + " " + str(anomaly_trigger[counter]) + "\n")
         counter += 1
     output.close()
+    #################################################################################
