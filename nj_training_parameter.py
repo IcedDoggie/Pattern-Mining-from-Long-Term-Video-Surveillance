@@ -16,14 +16,16 @@ def nj_training_parameter(training_track, representative_track):
     training_track, pivot_list = trajectory_pivoting_based_on_id(training_track)
     representative_track, pivot_list2 = trajectory_pivoting_based_on_id(representative_track)
     # convert to numpy
+     
     training_track = pd.DataFrame.as_matrix(training_track)   
     representative_track = pd.DataFrame.as_matrix(representative_track)
 #    tracks_counter = 0
     representative_counter = 0
     bottom_param = 0
     parameter_nj_array = np.empty([0])
-    print(representative_track)    
+      
     while representative_counter < len(pivot_list2) - 1:
+        print(representative_counter)
         tracks_counter = 0
         while tracks_counter < len(pivot_list) - 1:
             bottom_param += chamfer_distance(training_track[pivot_list[tracks_counter]:pivot_list[tracks_counter + 1]],
@@ -33,4 +35,5 @@ def nj_training_parameter(training_track, representative_track):
             parameter_nj = len(training_track) / bottom_param
         parameter_nj_array = np.append(parameter_nj_array, parameter_nj)
         representative_counter += 1
+        
     return parameter_nj_array
