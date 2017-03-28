@@ -58,7 +58,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     currentDay = dayArray[0]
     pointerMonth = 0
     pointerDay = 0
-    daysToChoose = 365 #30 for original experiment
+    daysToChoose = 30 #30 for original experiment
 
     # probability calculation
     threshold = np.empty([0])
@@ -157,12 +157,15 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     
     probability_array = np.empty([0])
     anomalous = np.empty([0])
+    tracker_trained_threshold = 0
+    tracker_start = 0
     while counter < len(selected_test_dates):
         number_of_anomalous_track = 0
         os.chdir(root_dir)     
         filename = "test_day_" + str(counter) + "_" + str(day_to_analyze) + ".txt" 
         representative_traj, end, lines_ori = ReadTraclusExport(filename)
         representative_traj = representative_traj[['TrackID', 'X', 'Y']]
+        tracker_trained_threshold = tracker_trained_threshold + representative_traj['TrackID'].max() + 1
         
         # reading test day track
         os.chdir(traj_dir)
@@ -171,11 +174,13 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         filename = selected_test_dates[counter] + ".txt"
         test_day = pd.read_table(filename, delimiter =' ', header=None, names=col_names)
         test_day = test_day[['TrackID', 'X', 'Y']]
-
-        probability, number_of_anomalous_track, probability_array, num_track = calculateSimilarity(representative_traj, test_day, nj_param[counter], trained_threshold[counter], number_of_anomalous_track)
+        
+        probability, number_of_anomalous_track, probability_array, num_track = calculateSimilarity(representative_traj, test_day, nj_param[tracker_start:tracker_trained_threshold], trained_threshold[tracker_start:tracker_trained_threshold], number_of_anomalous_track)
 #        probability_array = np.append(probability_array, probability)
         anomalous = np.append(anomalous, number_of_anomalous_track)
         
+        # update start tracker
+        tracker_start = tracker_trained_threshold
         
         os.chdir(root_dir)
         filename = "anomalous_" + str(day_to_analyze) + ".txt"

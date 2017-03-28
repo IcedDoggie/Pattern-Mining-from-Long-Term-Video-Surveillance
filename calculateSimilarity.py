@@ -21,7 +21,8 @@ def calculateSimilarity(representative_trajectory, new_trajectory, parameter_nj,
     max_probability = np.empty([0])
     representative_trajectory = pd.DataFrame.as_matrix(representative_trajectory)
     representative_counter = 0
-
+    print(parameter_nj)
+    print(threshold)
     
     probability_array = np.empty([0])
     threshold_to_compare = 0
