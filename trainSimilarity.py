@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Mon Mar 27 15:44:35 2017
+
+@author: Ice
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Sat Jan 21 20:34:21 2017
 
 @author: Ice
@@ -11,7 +18,7 @@ import pandas as pd
 import numpy as np
 import math
 
-def calculateSimilarity(representative_trajectory, new_trajectory, parameter_nj, threshold, num_anomaly):
+def trainSimilarity(representative_trajectory, new_trajectory, parameter_nj):
     
     # splitting tracks based on id
     new_trajectory, pivot_list = trajectory_pivoting_based_on_id(new_trajectory)
@@ -22,16 +29,16 @@ def calculateSimilarity(representative_trajectory, new_trajectory, parameter_nj,
     
     tracks_counter = 0
     
-    while tracks_counter < num_new_trajectory: #T'
+    while tracks_counter < num_new_trajectory:
         one_track = new_trajectory[ pivot_list[tracks_counter]:pivot_list[tracks_counter+1] ]
         
         probability = [np.exp( (-parameter_nj) * chamfer_distance(one_track,representative_trajectory))]
-        if probability < threshold:
-            num_anomaly += 1
+        
+
         
         probability_array = np.append(probability_array, probability)
         tracks_counter += 1
 #        tracks_counter += 1
 #     print(parameter_nj)
-    print(probability_array)
-    return probability, num_anomaly, probability_array, num_new_trajectory
+#    print(probability_array)
+    return probability
