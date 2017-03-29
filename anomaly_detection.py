@@ -58,7 +58,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     currentDay = dayArray[0]
     pointerMonth = 0
     pointerDay = 0
-    daysToChoose = 30 #30 for original experiment
+    daysToChoose = 365 #30 for original experiment
 
     # probability calculation
     threshold = np.empty([0])
@@ -75,7 +75,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     for threshold in trained_threshold_temp:
         trained_threshold = np.append(trained_threshold, float(threshold))
     output.close()    
-    print(trained_threshold)
+#    print(trained_threshold)
       
     nj_param_file = "nj_param_" + str(day_to_analyze) + ".txt"        
     output = open(nj_param_file)
@@ -85,7 +85,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     for param in nj_param_temp:
         nj_param = np.append(nj_param, float(param))
     output.close()        
-    print(nj_param)
+#    print(nj_param)
     
     
     date_array = np.empty([0])
@@ -94,7 +94,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     counter = 0
     
     col_names = ['TrackID', 'FrameNo', 'X', 'Y']
-    print(os.getcwd())
+#    print(os.getcwd())
     counter_file = 0
     currentIndex = 1
     n_parameter = 3 # this parameter sets how many previous training days
@@ -119,7 +119,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
                 n_param_counter -= 1  
                 num_days_counter += 1
                 list_day = np.append(list_day, stringDate)
-                print(date)
+#                print(date)
         except:
             file_existence_checker += 1
             counter -= 1
@@ -131,7 +131,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     
         currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)    
     
-    print(list_day)    
+#    print(list_day)    
     test_dates_array = np.empty([0])
     ########################## load the test dates ###############################
     os.chdir(root_dir)    
@@ -147,7 +147,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     for dates in test_dates:
         if dates <= list_day[len(list_day)-1]:
             selected_test_dates = np.append(selected_test_dates, dates)
-    print(selected_test_dates)
+#    print(selected_test_dates)
     ##############################################################################
     
     ######## calculate probability and distances ########
@@ -157,6 +157,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     
     probability_array = np.empty([0])
     anomalous = np.empty([0])
+    comparative_likelihood = np.empty([0])
     tracker_trained_threshold = 0
     tracker_start = 0
     while counter < len(selected_test_dates):
@@ -175,7 +176,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         test_day = pd.read_table(filename, delimiter =' ', header=None, names=col_names)
         test_day = test_day[['TrackID', 'X', 'Y']]
         
-        probability, number_of_anomalous_track, probability_array, num_track = calculateSimilarity(representative_traj, test_day, nj_param[tracker_start:tracker_trained_threshold], trained_threshold[tracker_start:tracker_trained_threshold], number_of_anomalous_track)
+        probability, number_of_anomalous_track, probability_array, num_track, comparative_likelihood = calculateSimilarity(representative_traj, test_day, nj_param[tracker_start:tracker_trained_threshold], trained_threshold[tracker_start:tracker_trained_threshold], number_of_anomalous_track, comparative_likelihood)
 #        probability_array = np.append(probability_array, probability)
         anomalous = np.append(anomalous, number_of_anomalous_track)
         
@@ -184,14 +185,26 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         
         os.chdir(root_dir)
         filename = "anomalous_" + str(day_to_analyze) + ".txt"
-#        if os.path.isfile(filename) == False:
-#            output = open(filename, 'w')
-#        else:
-#            output = open(filename, 'a')
-#        output.write(selected_test_dates[counter] + " " + str(number_of_anomalous_track) + "\n")
+        if os.path.isfile(filename) == False:
+            output = open(filename, 'w')
+        else:
+            output = open(filename, 'a')
+        output.write(selected_test_dates[counter] + " " + str(number_of_anomalous_track) + "\n")
         
-#        output.close()
+        output.close()
         
+        filename = "probability_test_" + str(day_to_analyze) + ".txt"
+        if os.path.isfile(filename) == False:
+            output = open(filename, 'w')
+        else:
+            output = open(filename, 'a')
+        for probability in probability_array:
+            output.write( selected_test_dates[counter] + " "  + str(probability) + "\n")
+        output.close()
+        
+        # probability/number of trajectory
+        print("Likelihood of each track")
+        print(probability_array)
         mean_likelihood_anomalies = sum(probability_array) / num_track
         filename = "likelihood_" + str(day_to_analyze) + ".txt"
         if os.path.isfile(filename) == False:
@@ -199,13 +212,21 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         else:
             output = open(filename, 'a')
         output.write( selected_test_dates[counter] + " "  + str(mean_likelihood_anomalies) + "\n")
+        
+        
+        # likelihood / respective threshold        
+        mean_comparative = sum(comparative_likelihood) / num_track
+        filename = "compare_likelihood_" + str(day_to_analyze) + ".txt"
+        if os.path.isfile(filename) == False:
+            output = open(filename, 'w')
+        else:
+            output = open(filename, 'a')
+        output.write( selected_test_dates[counter] + " "  + str(mean_comparative) + "\n")
+      
+    
+    
+    
         counter += 1
-    print(probability_array)
-    print(anomalous)
-    
-    
-    
-    
     ################### plotting anomalous track #######
     os.chdir(img_dir)
     counter = 0

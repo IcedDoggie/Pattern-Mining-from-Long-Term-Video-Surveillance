@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 import math
 
-def calculateSimilarity(representative_trajectory, new_trajectory, parameter_nj, threshold, num_anomaly):
+def calculateSimilarity(representative_trajectory, new_trajectory, parameter_nj, threshold, num_anomaly, comparative_likelihood):
     
     # splitting tracks based on id
     new_trajectory, pivot_list = trajectory_pivoting_based_on_id(new_trajectory)
@@ -21,9 +21,9 @@ def calculateSimilarity(representative_trajectory, new_trajectory, parameter_nj,
     max_probability = np.empty([0])
     representative_trajectory = pd.DataFrame.as_matrix(representative_trajectory)
     representative_counter = 0
-    print(parameter_nj)
-    print(threshold)
-    
+#    print(parameter_nj)
+#    print(threshold)
+#    
     probability_array = np.empty([0])
     threshold_to_compare = 0
     tracks_counter = 0
@@ -42,6 +42,9 @@ def calculateSimilarity(representative_trajectory, new_trajectory, parameter_nj,
         threshold_to_compare = np.argmax(probability_array)        
         if max_probability[tracks_counter] > threshold[threshold_to_compare]:
             num_anomaly += 1
+        ## calculate comparative likelihood
+        comparative_likelihood = np.append(comparative_likelihood, max_probability[tracks_counter] / threshold[threshold_to_compare])            
+        
         tracks_counter += 1    
-    print(max_probability)
-    return probability, num_anomaly, max_probability, num_new_trajectory
+#    print(max_probability)
+    return probability, num_anomaly, max_probability, num_new_trajectory, comparative_likelihood
