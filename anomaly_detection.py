@@ -160,6 +160,10 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     comparative_likelihood = np.empty([0])
     tracker_trained_threshold = 0
     tracker_start = 0
+
+    # plot distance
+#    max_distance = np.empty([0])    
+    
     while counter < len(selected_test_dates):
         number_of_anomalous_track = 0
         os.chdir(root_dir)     
@@ -175,15 +179,26 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         filename = selected_test_dates[counter] + ".txt"
         test_day = pd.read_table(filename, delimiter =' ', header=None, names=col_names)
         test_day = test_day[['TrackID', 'X', 'Y']]
-        
+#        print(selected_test_dates[counter])
         probability, number_of_anomalous_track, probability_array, num_track, comparative_likelihood = calculateSimilarity(representative_traj, test_day, nj_param[tracker_start:tracker_trained_threshold], trained_threshold[tracker_start:tracker_trained_threshold], number_of_anomalous_track, comparative_likelihood)
 #        probability_array = np.append(probability_array, probability)
         anomalous = np.append(anomalous, number_of_anomalous_track)
-        
+#        print(num_track)
         # update start tracker
         tracker_start = tracker_trained_threshold
         
         os.chdir(root_dir)
+        
+        # plotting distance
+#        filename = "distance_" + str(day_to_analyze) + ".txt"
+#        if os.path.isfile(filename) == False:
+#            output = open(filename, 'w')
+#        else:
+#            output = open(filename, 'a')
+#        for distance in max_distance:
+#            output.write(selected_test_dates[counter] + " " + str(distance) + "\n")
+#        output.close()        
+        
         filename = "anomalous_" + str(day_to_analyze) + ".txt"
         if os.path.isfile(filename) == False:
             output = open(filename, 'w')
@@ -202,9 +217,16 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
             output.write( selected_test_dates[counter] + " "  + str(probability) + "\n")
         output.close()
         
+        filename = "total_num_track_" + str(day_to_analyze) + ".txt"
+        if os.path.isfile(filename) == False:
+            output = open(filename, 'w')
+        else:
+            output = open(filename, 'a')
+        output.write( selected_test_dates[counter] + " "  + str(num_track) + "\n")
+        output.close()
         # probability/number of trajectory
-        print("Likelihood of each track")
-        print(probability_array)
+#        print("Likelihood of each track")
+        
         mean_likelihood_anomalies = sum(probability_array) / num_track
         filename = "likelihood_" + str(day_to_analyze) + ".txt"
         if os.path.isfile(filename) == False:
@@ -212,37 +234,49 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         else:
             output = open(filename, 'a')
         output.write( selected_test_dates[counter] + " "  + str(mean_likelihood_anomalies) + "\n")
+        output.close()
         
-        
-        # likelihood / respective threshold        
+        # likelihood / respective threshold 
+#        print("comparative likelihood")
+#        print(comparative_likelihood)
+#        print("number of trajectories: " + str(num_track))
         mean_comparative = sum(comparative_likelihood) / num_track
+#        print(mean_comparative)
         filename = "compare_likelihood_" + str(day_to_analyze) + ".txt"
         if os.path.isfile(filename) == False:
             output = open(filename, 'w')
         else:
             output = open(filename, 'a')
         output.write( selected_test_dates[counter] + " "  + str(mean_comparative) + "\n")
-      
+        output.close()
     
     
     
         counter += 1
     ################### plotting anomalous track #######
     os.chdir(img_dir)
+#    counter = 0
+#    dummy_array = np.empty([0])
+#    while counter < len(selected_test_dates):
+#        dummy_array = np.append(dummy_array, counter)        
+#        counter += 1
     counter = 0
     dummy_array = np.empty([0])
-    while counter < len(selected_test_dates):
+
+    while counter < len(max_distance):
         dummy_array = np.append(dummy_array, counter)        
         counter += 1
+
     ###### Each Day Graph #######
     figure_name = "Figure_" + str(day_to_analyze) + ".jpg"
     fig = plt.figure(figsize=(20,20))
     ax = fig.add_subplot(111)
-    plt.xticks(dummy_array, selected_test_dates)
-    ax.plot(dummy_array, anomalous)
-    ax.xaxis.set_major_locator(ticker.MultipleLocator(2))
+#    plt.xticks(dummy_array, selected_test_dates)
+    ax.plot(dummy_array, max_distance)
+#    ax.xaxis.set_major_locator(ticker.MultipleLocator(2))
     plt.xlabel("Test Dates")
-    plt.ylabel("Number of Anomalies")
+#    plt.ylabel("Number of Anomalies")
+    plt.ylabel("distance")
 #    fig, ax = plt.plot(dummy_array, anomalous)
 
     plt.savefig(figure_name)
@@ -250,17 +284,5 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     
     ##############################
     
-    ############ Combined Graphs ###################
-    os.chdir(root_dir)
-    col_names = ['Date', 'Anomalies']
-    file_0 = 'pd.read_table("anomalous_0.txt", delimiter=' ', header=None, names=col_names)'
-    file_1 = 'pd.read_table("anomalous_1.txt", delimiter=' ', header=None, names=col_names)'
-    file_2 = 'pd.read_table("anomalous_2.txt", delimiter=' ', header=None, names=col_names)'
-    file_3 = 'pd.read_table("anomalous_3.txt", delimiter=' ', header=None, names=col_names)'
-    file_4 = 'pd.read_table("anomalous_4.txt", delimiter=' ', header=None, names=col_names)'
-    file_5 = 'pd.read_table("anomalous_5.txt", delimiter=' ', header=None, names=col_names)'
-    file_6 = 'pd.read_table("anomalous_6.txt", delimiter=' ', header=None, names=col_names)'
-
-
 
 
