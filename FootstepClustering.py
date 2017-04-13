@@ -23,7 +23,7 @@ import collections
 from agglomerativeClustering import agglomerativeClustering
 from fancy_dendrogram import fancy_dendrogram
 from heatmapPooling import heatmapPooling
-from heatmapConstruction import heatmapConstruction
+from heatmapConstruction import constructHeatmap
 from trackID_reindex import trackID_reindex
 from calendarFunction import calendarFunction
 
@@ -52,7 +52,7 @@ currentMonth = monthArray[0]
 currentDay = dayArray[0]
 pointerMonth = 0
 pointerDay = 0
-daysToChoose = 235 # currently hardcoded, 235 is for entire year of 2012
+daysToChoose = 202 # currently hardcoded, 235 is for entire year of 2012
 #####################################################################################################
 
 
@@ -62,7 +62,7 @@ daysToChoose = 235 # currently hardcoded, 235 is for entire year of 2012
 counter = 0
 frames = pd.DataFrame()
 # os.chdir('E:\Documents\MMU Studies\Python Scripts\Track Blobs')
-os.chdir('E:\Documents\MMU Studies\Python Scripts\Track LOST dataset')
+os.chdir('E:\Documents\MMU Studies\Python Scripts\Track LOST dataset 2')
 currentIndex = 1 # This variable is used to reindex every dataframe
 print(os.getcwd())
 listDay = []
@@ -72,8 +72,11 @@ listDate = []
 listDate += [0]
 listDate_for_topbottom = []
 listDate_for_topbottom += [0]
+col_names = ['TrackID','FrameNo', 'X', 'Y']
+file_existence_checker = 0
 while counter < daysToChoose:
-    stringDate = '001_' + str(currentYear) + str(currentMonth) + str(currentDay) + '.txt' 
+    
+    stringDate = '017_' + str(currentYear) + str(currentMonth) + str(currentDay) + '.txt' 
     string_to_be_parsed = "pd.read_table('" + stringDate + "',delimiter=' ', header=None, names=col_names)"
     try:
         exec("%s%d = %s" % ("day", counter, string_to_be_parsed))
@@ -92,12 +95,19 @@ while counter < daysToChoose:
         print("Found")
     except:
         print("Not Found")
+        file_existence_checker += 1
         counter -= 1
-    
-    counter += 1
+    if file_existence_checker > 50:
+        daysToChoose = counter
+        counter = daysToChoose
+#        counter = daysToChoose # just terminate the loop is ok ady.
+        
+    else:
+        counter += 1
+    print(counter)
     currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)
 #######################################################################################
-col_names = ['TrackID','FrameNo', 'X', 'Y']
+print("loop breaks")
 concatDay = frames.sort_values(by='TrackID', ascending=True)
 concatDay = concatDay.reset_index(drop=True)
 os.chdir('E:\Documents\MMU Studies\Python Scripts')
@@ -114,6 +124,7 @@ np_mat_topbottom = np.empty((48,0)) # 48 is the total number of pools
 
 while counter < daysToChoose:
     heatmap_data = constructHeatmap(listDay[counter])
+
     vector_heatmap, sum_array, sum_array_top_bottom = heatmapPooling(heatmap_data, 80)
     np_mat += [sum_array]
     np_mat2 += [sum_array_top_bottom]
@@ -127,7 +138,7 @@ np_vector_heatmap = np.asarray(np_vector_heatmap)
 # print(np_mat_transpose)
 # print(max(np_mat[0]))
 # print(min(np_mat[0]))
-clustered_data = agglomerativeClustering(heatmap_data, np_mat)
+#clustered_data = agglomerativeClustering(heatmap_data, np_mat)
 
 # test_transpose_of_topbottom = np_mat_topbottom.transpose()
 
@@ -157,22 +168,22 @@ clustered_data = agglomerativeClustering(heatmap_data, np_mat)
 # ax.matshow(np_mat)
 
 ######################################### Feature vector Visualization ####################################################
-# fig2 = plt.figure(figsize=(20,20))
-# ax2 = fig2.add_subplot(111)
-# ax2.matshow(np_mat)
-# # ax2.matshow(np_mat_topbottom_transpose)
-# ax2.set_yticklabels(listDate)
-# ax2.yaxis.set_major_locator(ticker.MultipleLocator(6))
-# # plt.savefig('Heatmap_VEC_2012_with_date.png')
+fig2 = plt.figure(figsize=(20,20))
+ax2 = fig2.add_subplot(111)
+ax2.matshow(np_mat)
+# ax2.matshow(np_mat_topbottom_transpose)
+ax2.set_yticklabels(listDate)
+ax2.yaxis.set_major_locator(ticker.MultipleLocator(6))
+plt.savefig('Heatmap_VEC_2012_with_date.png')
 
-# fig3 = plt.figure(figsize=(20,20))
-# ax3 = fig3.add_subplot(111)
-# ax3.matshow(np_mat_topbottom)
-# # ax3.matshow(np_mat2)
-# # ax3.matshow(np_mat)
-# ax3.set_xticklabels(listDate_for_topbottom)
-# ax3.xaxis.set_major_locator(ticker.MultipleLocator(20))
-# # plt.savefig('Heatmap_VEC_2012_with_date_top_bottom.png')
+fig3 = plt.figure(figsize=(20,20))
+ax3 = fig3.add_subplot(111)
+ax3.matshow(np_mat_topbottom)
+# ax3.matshow(np_mat2)
+# ax3.matshow(np_mat)
+ax3.set_xticklabels(listDate_for_topbottom)
+ax3.xaxis.set_major_locator(ticker.MultipleLocator(20))
+plt.savefig('Heatmap_VEC_2012_with_date_top_bottom.png')
 ###########################################################################################################################
 
-# plt.show()
+plt.show()

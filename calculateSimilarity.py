@@ -27,11 +27,17 @@ def calculateSimilarity(representative_trajectory, new_trajectory, parameter_nj,
     probability_array = np.empty([0])
     threshold_to_compare = 0
     tracks_counter = 0
+    
+    # influence parameter
+    influence = 1
+    
+    # visualizing anomalous track
+    anomalous_track = np.empty([0])
+    id_anomalous = np.empty([0])
 
-
-    while tracks_counter < num_new_trajectory:
+    while tracks_counter < len(pivot_list) - 1:
         # plotting distance
-#        distance_array = np.empty([0])
+        distance_array = np.empty([0])
 
         probability_array = np.empty([0])
         representative_counter = 0
@@ -44,27 +50,35 @@ def calculateSimilarity(representative_trajectory, new_trajectory, parameter_nj,
 #            print("probability: " + str(probability))
 
             # Try plotting the Distance graph
-#            distance = chamfer_distance(one_track, representative_trajectory[pivot_list2[representative_counter]:pivot_list2[representative_counter+1]])
-#            distance_array = np.append(distance_array, distance)                    
+            distance = chamfer_distance(one_track, representative_trajectory[pivot_list2[representative_counter]:pivot_list2[representative_counter+1]])
+            distance_array = np.append(distance_array, distance)                    
             
             probability_array = np.append(probability_array, probability)
             representative_counter += 1
 #        print("\n")
             
         # distance graph plotting
-#        max_distance = np.append(max_distance, max(distance_array))
+        min_distance = min(distance_array)
             
         max_probability = np.append(max_probability, min(probability_array)) #verify with dr.john    
+        
         threshold_to_compare = np.argmax(probability_array)
+        
 #        print(threshold_to_compare)        
-        if max_probability[tracks_counter] < threshold[threshold_to_compare]:
+        if max_probability[tracks_counter] < threshold[threshold_to_compare] and min_distance > 1000:
+#        if min_distance > 50000:
             num_anomaly += 1
+            print( "min distance: " + str(min_distance))
+            # parse the anomalous track data back to anomalydetection
+
+            id_anomalous = np.append(id_anomalous, (one_track.shape[0]))
+            anomalous_track = np.append(anomalous_track, (one_track))
         ## calculate comparative likelihood
 #        comparative_likelihood = np.append(comparative_likelihood, max_probability[tracks_counter] / threshold[threshold_to_compare])  
 #        print("max_prob: " + str(max_probability[tracks_counter]))
 #        print("threshold: " + str(threshold[threshold_to_compare]))
         
-        temp_num = num_anomaly / (num_new_trajectory)
+        temp_num = num_anomaly / (len(pivot_list) - 1)
     
         
         ratio_likelihood_threshold = max_probability[tracks_counter] / threshold[threshold_to_compare] 
@@ -75,4 +89,4 @@ def calculateSimilarity(representative_trajectory, new_trajectory, parameter_nj,
         
         tracks_counter += 1    
 #    print(max_probability)
-    return probability, num_anomaly, max_probability, num_new_trajectory, comparative_likelihood
+    return probability, num_anomaly, max_probability, num_new_trajectory, comparative_likelihood, anomalous_track, id_anomalous

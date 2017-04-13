@@ -62,7 +62,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
 
     # probability calculation
     threshold = np.empty([0])
-    
+    scores_dir = "E:\Documents\MMU Studies\Python Scripts\Scores"
     #####################################################################################################    
     ######### parameters for mon., tues, ..etc. #######   
     os.chdir(root_dir)
@@ -130,7 +130,10 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         counter += 1
     
         currentYear, currentMonth, currentDay, pointerMonth, pointerDay = calendarFunction(currentYear, currentMonth, currentDay, pointerMonth, pointerDay)    
-    
+
+
+
+        
 #    print(list_day)    
     test_dates_array = np.empty([0])
     ########################## load the test dates ###############################
@@ -180,7 +183,8 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         test_day = pd.read_table(filename, delimiter =' ', header=None, names=col_names)
         test_day = test_day[['TrackID', 'X', 'Y']]
 #        print(selected_test_dates[counter])
-        probability, number_of_anomalous_track, probability_array, num_track, comparative_likelihood = calculateSimilarity(representative_traj, test_day, nj_param[tracker_start:tracker_trained_threshold], trained_threshold[tracker_start:tracker_trained_threshold], number_of_anomalous_track, comparative_likelihood)
+        probability, number_of_anomalous_track, probability_array, num_track, comparative_likelihood, anomalous_track, id_anomalous = calculateSimilarity(representative_traj, test_day, nj_param[tracker_start:tracker_trained_threshold], trained_threshold[tracker_start:tracker_trained_threshold], number_of_anomalous_track, comparative_likelihood)
+        
 #        probability_array = np.append(probability_array, probability)
         anomalous = np.append(anomalous, number_of_anomalous_track)
 #        print(num_track)
@@ -189,6 +193,31 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         
         os.chdir(root_dir)
         
+#        print(anomalous_track.shape)
+#        print(id_anomalous)
+        start_point = 0
+        partition_point = 0
+        ################## visualizing ###################
+        for i in id_anomalous:
+#            print(start_point)
+            partition_point += i * 2
+#            print(partition_point)
+            one_anomalous_track = anomalous_track[start_point:partition_point]
+            
+            one_anomalous_track = np.reshape(one_anomalous_track, (len(one_anomalous_track)/2, 2))
+            col = ['X', 'Y']        
+            one_anomalous_track = pd.DataFrame(one_anomalous_track, columns=col)
+#            print(anomalous_track)
+            one_anomalous_track['TrackID'] = (np.ones(one_anomalous_track.shape[0]))
+#            print(one_anomalous_track)
+        
+#        colors_for_lines = ColorAssignment(representative_traj)
+            cluster_line = LinesConstruct(one_anomalous_track)
+            colors_for_lines = ['black']
+            filename = str(counter) + "_" + str(day_to_analyze) + "_anomalous.jpg"
+            anomalous_dir = "E:\Documents\MMU Studies\Python Scripts\Anomalous"
+            Visualizer(cluster_line, colors_for_lines, filename, root_dir, anomalous_dir)        
+            start_point = partition_point
         # plotting distance
 #        filename = "distance_" + str(day_to_analyze) + ".txt"
 #        if os.path.isfile(filename) == False:
@@ -198,6 +227,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
 #        for distance in max_distance:
 #            output.write(selected_test_dates[counter] + " " + str(distance) + "\n")
 #        output.close()        
+        os.chdir(scores_dir)
         
         filename = "anomalous_" + str(day_to_analyze) + ".txt"
         if os.path.isfile(filename) == False:
@@ -205,16 +235,16 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
         else:
             output = open(filename, 'a')
         output.write(selected_test_dates[counter] + " " + str(number_of_anomalous_track) + "\n")
-        
         output.close()
         
+        mean_prob = sum(probability_array)
         filename = "probability_test_" + str(day_to_analyze) + ".txt"
         if os.path.isfile(filename) == False:
             output = open(filename, 'w')
         else:
             output = open(filename, 'a')
-        for probability in probability_array:
-            output.write( selected_test_dates[counter] + " "  + str(probability) + "\n")
+#        for probability in probability_array:
+        output.write( selected_test_dates[counter] + " "  + str(mean_prob) + "\n")
         output.close()
         
         filename = "total_num_track_" + str(day_to_analyze) + ".txt"
@@ -253,6 +283,7 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     
     
         counter += 1
+        os.chdir(root_dir)
     ################### plotting anomalous track #######
     os.chdir(img_dir)
 #    counter = 0
@@ -263,24 +294,24 @@ def anomaly_detection(traFileCreation, day_to_analyze, number_of_days, year_to_a
     counter = 0
     dummy_array = np.empty([0])
 
-    while counter < len(max_distance):
-        dummy_array = np.append(dummy_array, counter)        
-        counter += 1
-
-    ###### Each Day Graph #######
-    figure_name = "Figure_" + str(day_to_analyze) + ".jpg"
-    fig = plt.figure(figsize=(20,20))
-    ax = fig.add_subplot(111)
-#    plt.xticks(dummy_array, selected_test_dates)
-    ax.plot(dummy_array, max_distance)
-#    ax.xaxis.set_major_locator(ticker.MultipleLocator(2))
-    plt.xlabel("Test Dates")
-#    plt.ylabel("Number of Anomalies")
-    plt.ylabel("distance")
-#    fig, ax = plt.plot(dummy_array, anomalous)
-
-    plt.savefig(figure_name)
-    plt.show()
+#    while counter < len(max_distance):
+#        dummy_array = np.append(dummy_array, counter)        
+#        counter += 1
+#
+#    ###### Each Day Graph #######
+#    figure_name = "Figure_" + str(day_to_analyze) + ".jpg"
+#    fig = plt.figure(figsize=(20,20))
+#    ax = fig.add_subplot(111)
+##    plt.xticks(dummy_array, selected_test_dates)
+#    ax.plot(dummy_array, max_distance)
+##    ax.xaxis.set_major_locator(ticker.MultipleLocator(2))
+#    plt.xlabel("Test Dates")
+##    plt.ylabel("Number of Anomalies")
+#    plt.ylabel("distance")
+##    fig, ax = plt.plot(dummy_array, anomalous)
+#
+#    plt.savefig(figure_name)
+#    plt.show()
     
     ##############################
     
